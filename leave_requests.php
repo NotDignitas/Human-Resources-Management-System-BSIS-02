@@ -144,9 +144,6 @@ $rejectedPercentage = $totalRequests > 0 ? ($rejectedRequests / $totalRequests) 
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-paper-plane mr-2"></i>Leave Requests</h5>
-                                <button class="btn btn-primary" data-toggle="modal" data-target="#newRequestModal">
-                                    <i class="fas fa-plus mr-2"></i>New Request
-                                </button>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">

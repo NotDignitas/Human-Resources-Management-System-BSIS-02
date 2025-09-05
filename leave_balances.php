@@ -9,6 +9,49 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
 // Include database connection
 require_once 'dp.php';
+
+// Fetch leave balances data
+$leaveBalances = getLeaveBalances();
+$leaveTypeTotals = getLeaveTypeTotals();
+$utilizationTrend = getLeaveUtilizationTrend();
+$lowBalanceAlerts = getLowBalanceAlerts();
+
+// Calculate actual totals from database data
+$vacationTotal = 0;
+$sickTotal = 0;
+$maternityTotal = 0;
+$paternityTotal = 0;
+
+foreach ($leaveBalances as $employee) {
+    $vacationTotal += $employee['vacation_leave'];
+    $sickTotal += $employee['sick_leave'];
+    $maternityTotal += $employee['maternity_leave'];
+    $paternityTotal += $employee['paternity_leave'];
+}
+
+// Calculate utilization percentages based on actual data
+$vacationUtilization = count($leaveBalances) > 0 ? round(($vacationTotal / (count($leaveBalances) * 15)) * 100) : 0;
+$sickUtilization = count($leaveBalances) > 0 ? round(($sickTotal / (count($leaveBalances) * 10)) * 100) : 0;
+
+// Find specific leave type totals from actual data
+$vacationLeaveTotal = [
+    'leave_type_name' => 'Vacation Leave',
+    'total_remaining' => $vacationTotal,
+    'total_allocated' => count($leaveBalances) * 15,
+    'utilization_percentage' => $vacationUtilization
+];
+$sickLeaveTotal = [
+    'leave_type_name' => 'Sick Leave',
+    'total_remaining' => $sickTotal,
+    'total_allocated' => count($leaveBalances) * 10,
+    'utilization_percentage' => $sickUtilization
+];
+$specialLeaveTotal = [
+    'leave_type_name' => 'Special Leave',
+    'total_remaining' => 0,
+    'total_allocated' => 0,
+    'utilization_percentage' => 0
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -95,105 +138,50 @@ require_once 'dp.php';
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="https://ui-avatars.com/api/?name=John+Doe&background=E91E63&color=fff&size=35" 
-                                                             alt="Profile" class="profile-image mr-2">
-                                                        <div>
-                                                            <h6 class="mb-0">John Doe</h6>
-                                                            <small class="text-muted">EMP001</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>IT Department</td>
-                                                <td>
-                                                    <span class="badge badge-primary">12/15</span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-success">8/10</span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-info">105/105</span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-warning">7/7</span>
-                                                </td>
-                                                <td>
-                                                    <strong>132/137 days</strong>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary">
-                                                        <i class="fas fa-eye"></i> View
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="https://ui-avatars.com/api/?name=Jane+Smith&background=E91E63&color=fff&size=35" 
-                                                             alt="Profile" class="profile-image mr-2">
-                                                        <div>
-                                                            <h6 class="mb-0">Jane Smith</h6>
-                                                            <small class="text-muted">EMP002</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>HR Department</td>
-                                                <td>
-                                                    <span class="badge badge-primary">10/15</span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-success">5/10</span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-info">105/105</span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-warning">7/7</span>
-                                                </td>
-                                                <td>
-                                                    <strong>127/137 days</strong>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary">
-                                                        <i class="fas fa-eye"></i> View
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="https://ui-avatars.com/api/?name=Mike+Johnson&background=E91E63&color=fff&size=35" 
-                                                             alt="Profile" class="profile-image mr-2">
-                                                        <div>
-                                                            <h6 class="mb-0">Mike Johnson</h6>
-                                                            <small class="text-muted">EMP003</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>Finance</td>
-                                                <td>
-                                                    <span class="badge badge-primary">15/15</span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-success">10/10</span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-info">105/105</span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-warning">7/7</span>
-                                                </td>
-                                                <td>
-                                                    <strong>137/137 days</strong>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary">
-                                                        <i class="fas fa-eye"></i> View
-                                                    </button>
-                                                </td>
-                                            </tr>
+                                            <?php if (!empty($leaveBalances)): ?>
+                                                <?php foreach ($leaveBalances as $employee): ?>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex align-items-center">
+                                                                <img src="https://ui-avatars.com/api/?name=<?= urlencode($employee['first_name'] . '+' . $employee['last_name']) ?>&background=E91E63&color=fff&size=35" 
+                                                                     alt="Profile" class="profile-image mr-2">
+                                                                <div>
+                                                                    <h6 class="mb-0"><?= htmlspecialchars($employee['first_name'] . ' ' . $employee['last_name']) ?></h6>
+                                                                    <small class="text-muted"><?= htmlspecialchars($employee['employee_code']) ?></small>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td><?= htmlspecialchars($employee['department_name'] ?? 'N/A') ?></td>
+                                                        <td>
+                                                            <span class="badge badge-primary"><?= $employee['vacation_leave'] ?> days</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge badge-success"><?= $employee['sick_leave'] ?> days</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge badge-info"><?= $employee['maternity_leave'] ?> days</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge badge-warning"><?= $employee['paternity_leave'] ?> days</span>
+                                                        </td>
+                                                        <td>
+                                                            <strong><?= $employee['total_balance'] ?> days</strong>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-primary">
+                                                                <i class="fas fa-eye"></i> View
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <tr>
+                                                    <td colspan="8" class="text-center text-muted py-4">
+                                                        <i class="fas fa-info-circle mr-2"></i>
+                                                        No leave balance data found
+                                                    </td>
+                                                </tr>
+                                            <?php endif; ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -206,11 +194,11 @@ require_once 'dp.php';
                     <div class="col-md-4">
                         <div class="card balance-card">
                             <div class="card-body text-center">
-                                <div class="progress-circle mb-3" style="--percentage: 80%">
-                                    <span class="progress-text">80%</span>
+                                <div class="progress-circle mb-3" style="--percentage: <?= $vacationLeaveTotal['utilization_percentage'] ?>%">
+                                    <span class="progress-text"><?= $vacationLeaveTotal['utilization_percentage'] ?>%</span>
                                 </div>
                                 <h5>Vacation Leave</h5>
-                                <h3 class="text-primary">12/15 days</h3>
+                                <h3 class="text-primary"><?= $vacationLeaveTotal['total_remaining'] ?>/<?= $vacationLeaveTotal['total_allocated'] ?> days</h3>
                                 <small class="text-muted">Average utilization</small>
                             </div>
                         </div>
@@ -218,11 +206,11 @@ require_once 'dp.php';
                     <div class="col-md-4">
                         <div class="card balance-card">
                             <div class="card-body text-center">
-                                <div class="progress-circle mb-3" style="--percentage: 50%">
-                                    <span class="progress-text">50%</span>
+                                <div class="progress-circle mb-3" style="--percentage: <?= $sickLeaveTotal['utilization_percentage'] ?>%">
+                                    <span class="progress-text"><?= $sickLeaveTotal['utilization_percentage'] ?>%</span>
                                 </div>
                                 <h5>Sick Leave</h5>
-                                <h3 class="text-success">5/10 days</h3>
+                                <h3 class="text-success"><?= $sickLeaveTotal['total_remaining'] ?>/<?= $sickLeaveTotal['total_allocated'] ?> days</h3>
                                 <small class="text-muted">Average utilization</small>
                             </div>
                         </div>
@@ -230,11 +218,11 @@ require_once 'dp.php';
                     <div class="col-md-4">
                         <div class="card balance-card">
                             <div class="card-body text-center">
-                                <div class="progress-circle mb-3" style="--percentage: 20%">
-                                    <span class="progress-text">20%</span>
+                                <div class="progress-circle mb-3" style="--percentage: 0%">
+                                    <span class="progress-text">0%</span>
                                 </div>
                                 <h5>Special Leave</h5>
-                                <h3 class="text-info">2/10 days</h3>
+                                <h3 class="text-info">0/0 days</h3>
                                 <small class="text-muted">Average utilization</small>
                             </div>
                         </div>
