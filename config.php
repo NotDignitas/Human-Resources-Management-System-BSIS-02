@@ -1,7 +1,7 @@
 <?php
 // Database configuration
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'CC_HR');
+define('DB_NAME', 'hr_system');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
@@ -169,4 +169,3 @@ function customExceptionHandler($exception) {
 
 set_exception_handler("customExceptionHandler");
 ?>
-
