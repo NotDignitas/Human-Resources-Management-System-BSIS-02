@@ -9,11 +9,3 @@
 2025-08-26 08:41:10 Exception: Call to undefined function getShifts() in C:\Program Files\xampp\htdocs\Human-Resources-Management-System-BSIS-02\employee_shifts.php on line 60
 2025-08-26 08:41:34 Exception: Call to undefined function getShifts() in C:\Program Files\xampp\htdocs\Human-Resources-Management-System-BSIS-02\employee_shifts.php on line 60
 2025-08-26 08:41:58 Exception: Call to undefined function getShifts() in C:\Program Files\xampp\htdocs\Human-Resources-Management-System-BSIS-02\employee_shifts.php on line 60
-2025-09-07 14:12:56 Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'hr_system.employees' doesn't exist in C:\xampp\htdocs\Human-Resources-Management-System-BSIS-02\employee_onboarding.php on line 36
-2025-09-07 14:16:42 Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'hr_system.employees' doesn't exist in C:\xampp\htdocs\Human-Resources-Management-System-BSIS-02\employee_onboarding.php on line 38
-2025-09-07 14:16:49 Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'hr_system.employees' doesn't exist in C:\xampp\htdocs\Human-Resources-Management-System-BSIS-02\employee_onboarding.php on line 38
-2025-09-07 14:18:40 Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'c.resume_filename' in 'field list' in C:\xampp\htdocs\Human-Resources-Management-System-BSIS-02\job_applications.php on line 101
-2025-09-07 14:18:45 Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'c.resume_filename' in 'field list' in C:\xampp\htdocs\Human-Resources-Management-System-BSIS-02\job_applications.php on line 101
-2025-09-07 14:19:31 Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'c.resume_filename' in 'field list' in C:\xampp\htdocs\Human-Resources-Management-System-BSIS-02\job_applications.php on line 101
-2025-09-07 14:32:40 Exception: Call to undefined function getLeaveBalances() in C:\xampp\htdocs\Human-Resources-Management-System-BSIS-02\leave_balances.php on line 14
-2025-09-07 14:32:47 Exception: Call to undefined function getShifts() in C:\xampp\htdocs\Human-Resources-Management-System-BSIS-02\shifts.php on line 78

@@ -67,13 +67,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $next_stage_info = $next_stage->fetch(PDO::FETCH_ASSOC);
                     
                     if ($next_stage_info) {
+                        // Move to next stage
+                        $stmt = $conn->prepare("UPDATE candidates SET source = ? WHERE candidate_id = ?");
+                        $stmt->execute([$next_stage_info['stage_name'], $interview['candidate_id']]);
+                        
                         // Create next interview
                         $stmt = $conn->prepare("INSERT INTO interviews (application_id, stage_id, schedule_date, duration, interview_type, status) VALUES (?, ?, NOW(), 60, 'Interview', 'Rescheduled')");
                         $stmt->execute([$interview['application_id'], $next_stage_info['stage_id']]);
                     } else {
-                        // No more stages - move to Assessment
-                        $stmt = $conn->prepare("UPDATE job_applications SET status = 'Assessment' WHERE application_id = ?");
+                        // No more stages
+                        $stmt = $conn->prepare("UPDATE job_applications SET status = 'Completed All Stages' WHERE application_id = ?");
                         $stmt->execute([$interview['application_id']]);
+                        
+                        $stmt = $conn->prepare("UPDATE candidates SET source = 'Completed All Stages' WHERE candidate_id = ?");
+                        $stmt->execute([$interview['candidate_id']]);
                     }
                     $count++;
                 }
@@ -106,17 +113,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $next_stage_info = $next_stage->fetch(PDO::FETCH_ASSOC);
                     
                     if ($next_stage_info) {
+                        // Move to next interview stage
+                        $stmt = $conn->prepare("UPDATE candidates SET source = ? WHERE candidate_id = ?");
+                        $stmt->execute([$next_stage_info['stage_name'], $interview_data['candidate_id']]);
+                        
                         // Create next interview with Rescheduled status
                         $stmt = $conn->prepare("INSERT INTO interviews (application_id, stage_id, schedule_date, duration, interview_type, status) VALUES (?, ?, NOW(), 60, 'Interview', 'Rescheduled')");
                         $stmt->execute([$interview_data['application_id'], $next_stage_info['stage_id']]);
                         
                         $success_message = "✅ Interview completed! Candidate moved to {$next_stage_info['stage_name']}.";
                     } else {
-                        // No more stages - move to Assessment
-                        $stmt = $conn->prepare("UPDATE job_applications SET status = 'Assessment' WHERE application_id = ?");
+                        // No more stages - mark as completed all stages
+                        $stmt = $conn->prepare("UPDATE job_applications SET status = 'Completed All Stages' WHERE application_id = ?");
                         $stmt->execute([$interview_data['application_id']]);
                         
-                        $success_message = "✅ All interview stages completed! Candidate moved to Assessment.";
+                        $stmt = $conn->prepare("UPDATE candidates SET source = 'Completed All Stages' WHERE candidate_id = ?");
+                        $stmt->execute([$interview_data['candidate_id']]);
+                        
+                        $success_message = "✅ All interview stages completed! Ready for final approval.";
                     }
                 } else {
                     // Clear all interview history for this candidate
@@ -125,6 +139,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     $stmt = $conn->prepare("UPDATE job_applications SET status = 'Rejected' WHERE application_id = ?");
                     $stmt->execute([$interview_data['application_id']]);
+                    
+                    $stmt = $conn->prepare("UPDATE candidates SET source = 'Rejected' WHERE candidate_id = ?");
+                    $stmt->execute([$interview_data['candidate_id']]);
                     
                     $success_message = "❌ Candidate rejected and interview history cleared.";
                 }
@@ -143,6 +160,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $stmt = $conn->prepare("UPDATE job_applications SET status = 'Rejected' WHERE application_id = ?");
                 $stmt->execute([$interview_data['application_id']]);
+                
+                $stmt = $conn->prepare("UPDATE candidates SET source = 'Rejected' WHERE candidate_id = ?");
+                $stmt->execute([$interview_data['candidate_id']]);
                 
                 $success_message = "❌ Candidate rejected and interview history cleared!";
                 break;

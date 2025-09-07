@@ -92,17 +92,46 @@ CREATE TABLE departments (
 CREATE TABLE employment_history (
     history_id INT AUTO_INCREMENT PRIMARY KEY,
     employee_id INT NOT NULL,
-    job_role_id INT,
+    
+    -- Core employment details
+    job_title VARCHAR(150) NOT NULL,               -- Job Position / Title
+    department_id INT,                             -- Department / Division (FK to departments table)
+    employment_type ENUM('Full-time','Part-time','Contractual','Project-based','Casual','Intern') NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE,
-    salary DECIMAL(10,2) NOT NULL,
-    reason_for_change VARCHAR(255),
+    employment_status ENUM('Active','Resigned','Terminated','Retired','End of Contract','Transferred') NOT NULL,
+    
+    -- Reporting and assignment
+    reporting_manager_id INT,                      -- Supervisor (FK to employee_profiles)
+    location VARCHAR(150),                         -- Office/Branch/Remote
+    
+    -- Compensation
+    base_salary DECIMAL(10,2) NOT NULL,
+    allowances DECIMAL(10,2) DEFAULT 0.00,
+    bonuses DECIMAL(10,2) DEFAULT 0.00,
+    salary_adjustments DECIMAL(10,2) DEFAULT 0.00,
+    
+    -- Career movement
+    reason_for_change VARCHAR(255),                -- Promotion, resignation, transfer, etc.
+    promotions_transfers TEXT,                     -- Notes about movement history
+    
+    -- Performance & Training
+    duties_responsibilities TEXT,
+    performance_evaluations TEXT,
+    training_certifications TEXT,
+    
+    -- Contract & Notes
+    contract_details TEXT,                         -- Contract type, duration, renewals
+    remarks TEXT,
+    
+    -- Timestamps
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     -- Foreign Keys
     FOREIGN KEY (employee_id) REFERENCES employee_profiles(employee_id) ON DELETE CASCADE,
-    FOREIGN KEY (job_role_id) REFERENCES job_roles(job_role_id) ON DELETE SET NULL
+    FOREIGN KEY (department_id) REFERENCES departments(department_id) ON DELETE SET NULL,
+    FOREIGN KEY (reporting_manager_id) REFERENCES employee_profiles(employee_id) ON DELETE SET NULL
 );
 
 
@@ -684,17 +713,13 @@ CREATE TABLE candidates (
     email VARCHAR(100) NOT NULL UNIQUE,
     phone VARCHAR(20),
     address TEXT,
-    resume_data LONGBLOB,
-    resume_filename VARCHAR(255),
-    photo_data LONGBLOB,
-    photo_filename VARCHAR(255),
+    resume_url VARCHAR(255),
+    cover_letter_url VARCHAR(255),
     source VARCHAR(100),
     current_position VARCHAR(100),
     current_company VARCHAR(100),
     notice_period VARCHAR(50),
     expected_salary DECIMAL(10,2),
-    email_verified TINYINT(1) DEFAULT 0,
-    verification_token VARCHAR(64) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -705,7 +730,7 @@ CREATE TABLE job_applications (
     job_opening_id INT NOT NULL,
     candidate_id INT NOT NULL,
     application_date DATETIME NOT NULL,
-    status ENUM('Applied', 'Screening', 'Interview', 'Assessment', 'Onboarding', 'Offer', 'Hired', 'Rejected') DEFAULT 'Applied',
+    status ENUM('Applied', 'Screening', 'Interview', 'Assessment', 'Reference Check', 'Offer', 'Hired', 'Rejected', 'Withdrawn') DEFAULT 'Applied',
     notes TEXT,
     assessment_scores JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -747,25 +772,25 @@ CREATE TABLE interviews (
     FOREIGN KEY (stage_id) REFERENCES interview_stages(stage_id) ON DELETE CASCADE
 );
 
--- Create job_offers table (supports both hiring and promotions)
+-- Create job_offers table (no approver/creator references)
 CREATE TABLE job_offers (
     offer_id INT AUTO_INCREMENT PRIMARY KEY,
-    candidate_id INT NULL,
-    employee_id INT NULL,
+    application_id INT NOT NULL,
     job_opening_id INT NOT NULL,
-    offer_type ENUM('hire', 'promotion') NOT NULL,
-    salary_offered DECIMAL(10,2) NOT NULL,
-    benefits TEXT,
+    candidate_id INT NOT NULL,
+    offered_salary DECIMAL(10,2) NOT NULL,
+    offered_benefits TEXT,
     start_date DATE,
-    offer_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    response_date TIMESTAMP NULL,
-    status ENUM('Pending', 'Accepted', 'Rejected', 'Withdrawn') DEFAULT 'Pending',
+    expiration_date DATE NOT NULL,
+    approval_status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    offer_status ENUM('Draft', 'Sent', 'Accepted', 'Negotiating', 'Declined', 'Expired') DEFAULT 'Draft',
+    offer_letter_url VARCHAR(255),
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (candidate_id) REFERENCES candidates(candidate_id) ON DELETE CASCADE,
-    FOREIGN KEY (employee_id) REFERENCES employee_profiles(employee_id) ON DELETE CASCADE,
-    FOREIGN KEY (job_opening_id) REFERENCES job_openings(job_opening_id) ON DELETE CASCADE
+    FOREIGN KEY (application_id) REFERENCES job_applications(application_id) ON DELETE CASCADE,
+    FOREIGN KEY (job_opening_id) REFERENCES job_openings(job_opening_id) ON DELETE CASCADE,
+    FOREIGN KEY (candidate_id) REFERENCES candidates(candidate_id) ON DELETE CASCADE
 );
 
 -- Create recruitment_analytics table
@@ -796,36 +821,6 @@ CREATE TABLE onboarding_tasks (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (department_id) REFERENCES departments(department_id) ON DELETE SET NULL
-);
-
--- Create onboarding table for candidates
-CREATE TABLE onboarding (
-    onboarding_id INT AUTO_INCREMENT PRIMARY KEY,
-    application_id INT NOT NULL,
-    candidate_id INT NOT NULL,
-    department_id INT NOT NULL,
-    start_date DATE NOT NULL,
-    expected_completion_date DATE NOT NULL,
-    status ENUM('Pending', 'In Progress', 'Completed') DEFAULT 'Pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (application_id) REFERENCES job_applications(application_id) ON DELETE CASCADE,
-    FOREIGN KEY (candidate_id) REFERENCES candidates(candidate_id) ON DELETE CASCADE,
-    FOREIGN KEY (department_id) REFERENCES departments(department_id) ON DELETE CASCADE
-);
-
--- Create onboarding_task_progress table for tracking individual task completion
-CREATE TABLE onboarding_task_progress (
-    progress_id INT AUTO_INCREMENT PRIMARY KEY,
-    onboarding_id INT NOT NULL,
-    task_id INT NOT NULL,
-    status ENUM('Pending', 'Completed', 'Failed') DEFAULT 'Pending',
-    completed_date DATE NULL,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (onboarding_id) REFERENCES onboarding(onboarding_id) ON DELETE CASCADE,
-    FOREIGN KEY (task_id) REFERENCES onboarding_tasks(task_id) ON DELETE CASCADE
 );
 
 -- Create employee_onboarding table (no hiring manager reference)
@@ -1125,61 +1120,6 @@ INSERT INTO job_roles (title, description, department, min_salary, max_salary) V
 ('Security Personnel', 'Provides security services for municipal facilities', 'General Services Office', 18000.00, 28000.00),
 ('Legislative Staff', 'Provides secretarial support to Sangguniang Bayan', 'Sangguniang Bayan', 25000.00, 38000.00);
 
--- Create employees table for job offers system
-CREATE TABLE employees (
-    employee_id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    current_position VARCHAR(100),
-    status ENUM('Active', 'Inactive') DEFAULT 'Active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
--- Insert sample employees for promotions
-INSERT INTO employees (first_name, last_name, email, current_position) VALUES
-('Maria', 'Santos', 'maria.santos@municipality.gov.ph', 'Municipal Treasurer'),
-('Roberto', 'Cruz', 'roberto.cruz@municipality.gov.ph', 'Municipal Engineer'),
-('Jennifer', 'Reyes', 'jennifer.reyes@municipality.gov.ph', 'Nurse'),
-('Antonio', 'Garcia', 'antonio.garcia@municipality.gov.ph', 'CAD Operator'),
-('Lisa', 'Mendoza', 'lisa.mendoza@municipality.gov.ph', 'Social Worker'),
-('Michael', 'Torres', 'michael.torres@municipality.gov.ph', 'Accounting Staff'),
-('Carmen', 'Dela Cruz', 'carmen.delacruz@municipality.gov.ph', 'Clerk'),
-('Ricardo', 'Villanueva', 'ricardo.villanueva@municipality.gov.ph', 'Maintenance Worker'),
-('Sandra', 'Pascual', 'sandra.pascual@municipality.gov.ph', 'Cashier'),
-('Jose', 'Ramos', 'jose.ramos@municipality.gov.ph', 'Collection Officer');
-
--- Insert sample job openings
-INSERT INTO job_openings (job_role_id, department_id, title, description, requirements, responsibilities, location, employment_type, salary_range_min, salary_range_max, vacancy_count, posting_date, closing_date, status) VALUES
-(17, 9, 'Municipal Nurse', 'Provide nursing services and healthcare support to municipal residents', 'Bachelor of Science in Nursing, Valid PRC License, At least 2 years experience', 'Provide nursing care, assist in medical procedures, health education', 'Municipal Health Office', 'Full-time', 35000.00, 50000.00, 2, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Open'),
-(26, 13, 'Administrative Aide', 'Provide administrative support to HR department', 'College graduate, Computer literate, Good communication skills', 'File management, data entry, assist in HR processes', 'City Hall - 2nd Floor', 'Full-time', 22000.00, 35000.00, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Open');
-
--- Insert default interview stages for the sample job openings
-INSERT INTO interview_stages (job_opening_id, stage_name, stage_order, description, is_mandatory) VALUES
--- For Municipal Nurse position
-(1, 'Initial Screening', 1, 'Review of application documents and basic qualifications', 1),
-(1, 'Technical Interview', 2, 'Assessment of nursing knowledge and clinical skills', 1),
-(1, 'Panel Interview', 3, 'Interview with department heads and HR', 1),
-(1, 'Medical Examination', 4, 'Health assessment and fitness for duty', 1),
-
--- For Administrative Aide position
-(2, 'Document Review', 1, 'Verification of educational background and requirements', 1),
-(2, 'Skills Assessment', 2, 'Computer literacy and administrative skills test', 1),
-(2, 'HR Interview', 3, 'Final interview with HR manager', 1);
-
--- Insert sample candidates for testing
-INSERT INTO candidates (first_name, last_name, email, phone, address, source, current_position, expected_salary, resume_filename, photo_filename, email_verified) VALUES
-('Anna', 'Rodriguez', 'anna.rodriguez@email.com', '0917-111-2222', '123 Main St, City', 'Job Portal', 'Staff Nurse', 40000.00, 'anna_rodriguez_resume.pdf', 'anna_rodriguez_photo.jpg', 1),
-('Mark', 'Gonzales', 'mark.gonzales@email.com', '0917-333-4444', '456 Oak Ave, City', 'Walk-in', 'Administrative Assistant', 25000.00, 'mark_gonzales_resume.pdf', 'mark_gonzales_photo.jpg', 1),
-('Sarah', 'Dela Rosa', 'sarah.delarosa@email.com', '0917-555-6666', '789 Pine St, City', 'Referral', 'Registered Nurse', 42000.00, 'sarah_delarosa_resume.pdf', 'sarah_delarosa_photo.jpg', 1);
-
--- Insert sample job applications
-INSERT INTO job_applications (job_opening_id, candidate_id, application_date, status) VALUES
-(1, 1, NOW(), 'Applied'),
-(1, 3, NOW(), 'Applied'),
-(2, 2, NOW(), 'Applied');
-
 -- Insert sample data for employee_profiles
 INSERT INTO employee_profiles (personal_info_id, job_role_id, employee_number, hire_date, employment_status, current_salary, work_email, work_phone, location, remote_work) VALUES
 -- Department Heads and Key Officials
@@ -1233,6 +1173,137 @@ INSERT INTO `user_roles` (`role_name`, `description`) VALUES
 
 
 
+-- ===============================
+-- SAMPLE EMPLOYMENT HISTORY DATA
+-- ===============================
+
+INSERT INTO employment_history 
+(employee_id, job_title, department_id, employment_type, start_date, end_date, employment_status, 
+ reporting_manager_id, location, base_salary, allowances, bonuses, salary_adjustments, 
+ reason_for_change, promotions_transfers, duties_responsibilities, performance_evaluations, 
+ training_certifications, contract_details, remarks) 
+VALUES
+-- Current Positions
+(1, 'Municipal Treasurer', 3, 'Full-time', '2019-07-01', NULL, 'Active', NULL, 'City Hall - 1st Floor',
+ 65000.00, 5000.00, 0.00, 0.00, 'Appointed as Municipal Treasurer', 
+ 'Promoted from Administrative Aide', 
+ 'Oversees treasury operations, municipal revenue collection, and financial management.', 
+ 'Consistently rated "Excellent" in financial audits', 
+ 'CPA Certification, Treasury Management Training', 
+ 'Appointed by Mayor, renewable 6-year term', 'Key finance official'),
+
+(2, 'Municipal Engineer', 7, 'Full-time', '2018-06-15', NULL, 'Active', NULL, 'Engineering Building',
+ 75000.00, 6000.00, 0.00, 0.00, 'Appointed as Municipal Engineer',
+ 'Promoted from CAD Operator', 
+ 'Supervises infrastructure projects, designs municipal roads and buildings.', 
+ 'Rated "Very Satisfactory" in infrastructure project completion', 
+ 'PRC Civil Engineer License, Project Management Certification', 
+ 'Appointed by Mayor, renewable 6-year term', 'Head of engineering department'),
+
+(3, 'Nurse', 9, 'Full-time', '2020-01-20', NULL, 'Active', 10, 'Municipal Health Office',
+ 42000.00, 3000.00, 0.00, 0.00, 'Hired as Nurse',
+ NULL, 
+ 'Provides nursing care, assists doctors, administers vaccinations.', 
+ 'Highly commended during pandemic response', 
+ 'PRC Nursing License, Basic Life Support Training', 
+ 'Contract renewable every 3 years', 'Dedicated health staff'),
+
+(4, 'CAD Operator', 7, 'Full-time', '2019-03-10', NULL, 'Active', 2, 'Municipal Engineer''s Office',
+ 38000.00, 2000.00, 0.00, 0.00, 'Hired as CAD Operator',
+ NULL, 
+ 'Prepares AutoCAD drawings and engineering plans.', 
+ 'Satisfactory performance in multiple LGU projects', 
+ 'AutoCAD Certification', 
+ 'Fixed-term renewable contract', 'Key engineering support'),
+
+(5, 'Social Worker', 10, 'Full-time', '2021-09-05', NULL, 'Active', NULL, 'Municipal Social Welfare & Development Office',
+ 45000.00, 3000.00, 0.00, 0.00, 'Hired as Social Worker',
+ 'Promoted from Administrative Aide', 
+ 'Handles casework, provides assistance to indigent families.', 
+ 'Rated "Very Good" in community outreach', 
+ 'Social Work License, Community Development Training', 
+ 'Regular plantilla position', 'Handles social services cases'),
+
+(6, 'Accounting Staff', 5, 'Full-time', '2020-11-12', NULL, 'Active', NULL, 'Municipal Accountant''s Office',
+ 28000.00, 1500.00, 0.00, 0.00, 'Hired as Accounting Staff',
+ NULL, 
+ 'Processes vouchers, prepares reports, assists in bookkeeping.', 
+ 'Satisfactory audit reviews', 
+ 'Bookkeeping Certification', 
+ 'Regular plantilla position', 'Junior accounting role'),
+
+(7, 'Clerk', 8, 'Full-time', '2022-02-28', NULL, 'Active', NULL, 'Municipal Civil Registrar''s Office',
+ 30000.00, 1000.00, 0.00, 0.00, 'Hired as Clerk',
+ NULL, 
+ 'Maintains registry records, assists clients with civil documents.', 
+ 'Rated "Good" by supervisor', 
+ 'Civil Registration Training', 
+ 'Contract renewable every 2 years', 'Support staff'),
+
+(8, 'Maintenance Worker', 15, 'Full-time', '2021-05-18', NULL, 'Active', NULL, 'General Services Office',
+ 22000.00, 1000.00, 0.00, 0.00, 'Hired as Maintenance Worker',
+ NULL, 
+ 'Performs facility maintenance and minor repairs.', 
+ 'Satisfactory in safety inspections', 
+ 'Electrical Safety Training', 
+ 'Casual employment converted to regular', 'Assigned to city hall facilities'),
+
+(9, 'Cashier', 3, 'Full-time', '2020-09-10', NULL, 'Active', 1, 'Municipal Treasurer''s Office',
+ 32000.00, 2000.00, 0.00, 0.00, 'Hired as Cashier',
+ 'Promoted from Clerk', 
+ 'Handles cash collection, prepares daily receipts.', 
+ 'Commended for accurate handling of cash', 
+ 'Financial Management Training', 
+ 'Regular plantilla position', 'Treasury office staff'),
+
+(10, 'Collection Officer', 3, 'Full-time', '2019-12-01', NULL, 'Active', 1, 'Municipal Treasurer''s Office',
+ 35000.00, 2000.00, 0.00, 0.00, 'Hired as Collection Officer',
+ 'Promoted from Clerk', 
+ 'Collects taxes and fees, manages accounts receivables.', 
+ 'Rated "Very Good" in collection efficiency', 
+ 'Revenue Collection Procedures Training', 
+ 'Regular plantilla position', 'Handles revenue collection'),
+
+-- Previous Positions (Career Progression)
+(1, 'Administrative Aide', 13, 'Full-time', '2017-03-01', '2019-06-30', 'Resigned', NULL, 'City Hall - 2nd Floor',
+ 25000.00, 1000.00, 0.00, 0.00, 'Started as Administrative Aide',
+ 'Later promoted to Treasurer', 
+ 'Clerical and administrative support tasks.', 
+ 'Rated "Good"', 
+ NULL, 
+ 'Fixed-term appointment', 'Entry-level HR support'),
+
+(2, 'CAD Operator', 7, 'Full-time', '2015-08-01', '2018-06-14', 'Transferred', NULL, 'Engineering Building',
+ 32000.00, 1500.00, 0.00, 0.00, 'Started as CAD Operator',
+ 'Later promoted to Municipal Engineer', 
+ 'Drafting technical drawings.', 
+ 'Rated "Good"', 
+ 'AutoCAD Certification', 
+ 'Contract ended due to promotion', 'Junior engineering support'),
+
+(5, 'Administrative Aide', 13, 'Full-time', '2019-01-15', '2021-09-04', 'Transferred', NULL, 'City Hall - 2nd Floor',
+ 25000.00, 1000.00, 0.00, 0.00, 'Started as Administrative Aide',
+ 'Later promoted to Social Worker', 
+ 'Handled clerical support for social welfare programs.', 
+ 'Rated "Good"', 
+ NULL, 
+ 'Casual contract converted to plantilla', 'Support role before promotion'),
+
+(9, 'Clerk', 8, 'Full-time', '2018-05-01', '2020-09-09', 'Transferred', NULL, 'Municipal Civil Registrar''s Office',
+ 22000.00, 500.00, 0.00, 0.00, 'Started as Clerk',
+ 'Later promoted to Cashier', 
+ 'Maintained registry documents, clerical tasks.', 
+ 'Rated "Good"', 
+ NULL, 
+ 'Contract ended due to transfer', 'Civil registrar support'),
+
+(10, 'Clerk', 8, 'Full-time', '2017-10-01', '2019-11-30', 'Transferred', NULL, 'Municipal Civil Registrar''s Office',
+ 20000.00, 500.00, 0.00, 0.00, 'Started as Clerk',
+ 'Later promoted to Collection Officer', 
+ 'Clerical tasks, processing records.', 
+ 'Rated "Satisfactory"', 
+ NULL, 
+ 'Contract ended due to promotion', 'Civil registrar support role');
 
 -- Insert sample data for document_management
 INSERT INTO document_management (employee_id, document_type, document_name, file_path, expiry_date, document_status, notes) VALUES
