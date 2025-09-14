@@ -1340,3 +1340,296 @@ INSERT INTO document_management (employee_id, document_type, document_name, file
 (14, 'Certificate', 'Professional Driver License', '/documents/licenses/eduardo_hernandez_driver_license.pdf', '2025-12-31', 'Active', 'Professional driver''s license'),
 (15, 'Contract', 'Employment Contract - Security Personnel', '/documents/contracts/rosario_gonzales_contract.pdf', '2024-11-05', 'Active', 'Municipal facility security'),
 (15, 'Certificate', 'Security Guard License', '/documents/licenses/rosario_gonzales_security_license.pdf', '2025-08-31', 'Active', 'SOSIA security guard license');
+
+
+-- ===============================
+-- EXIT MANAGEMENT SAMPLE DATA
+-- ===============================
+
+-- Sample data for exits table (3 employees exiting for different reasons)
+INSERT INTO exits (employee_id, exit_type, exit_reason, notice_date, exit_date, status) VALUES
+-- Employee 6 (Michael Torres) - Resignation for better opportunity
+(6, 'Resignation', 'Accepted position as Senior Accountant at private firm with better compensation package', '2024-01-15', '2024-02-29', 'Completed'),
+
+-- Employee 14 (Eduardo Hernandez) - Retirement after reaching mandatory age
+(14, 'Retirement', 'Reached mandatory retirement age of 65 years old', '2023-11-01', '2024-01-31', 'Completed'),
+
+-- Employee 15 (Rosario Gonzales) - Contract ended
+(15, 'End of Contract', 'Fixed-term contract expired and not renewed due to budget constraints', '2024-09-01', '2024-10-31', 'Processing');
+
+-- Sample data for exit_checklist table
+INSERT INTO exit_checklist (exit_id, item_name, description, responsible_department, status, completed_date, notes) VALUES
+-- Checklist for Michael Torres (Exit ID 1)
+(1, 'Return Municipal Property', 'Return all municipal assets, equipment, and office supplies', 'General Services Office', 'Completed', '2024-02-28', 'All items accounted for and returned'),
+(1, 'Clear Financial Obligations', 'Settle any outstanding loans or advances', 'Municipal Treasurer\'s Office', 'Completed', '2024-02-25', 'No outstanding obligations'),
+(1, 'Handover Financial Records', 'Transfer custody of financial documents and ledgers', 'Municipal Accountant\'s Office', 'Completed', '2024-02-26', 'Complete handover to replacement staff'),
+(1, 'Return ID and Access Cards', 'Submit employee ID and building access cards', 'Municipal Human Resource & Administrative Office', 'Completed', '2024-02-29', 'All credentials returned'),
+(1, 'Update Personnel Records', 'Process final employment documentation', 'Municipal Human Resource & Administrative Office', 'Completed', '2024-02-29', 'Records updated in HRIS'),
+
+-- Checklist for Eduardo Hernandez (Exit ID 2)  
+(2, 'Process Retirement Benefits', 'File retirement papers with GSIS', 'Municipal Human Resource & Administrative Office', 'Completed', '2024-01-25', 'GSIS retirement filed successfully'),
+(2, 'Return Municipal Vehicle', 'Turn over assigned municipal vehicle and documents', 'General Services Office', 'Completed', '2024-01-30', 'Vehicle inspected and transferred'),
+(2, 'Clear Outstanding Leave', 'Process accumulated leave credits payout', 'Municipal Human Resource & Administrative Office', 'Completed', '2024-01-28', '45 days leave credits converted to cash'),
+(2, 'Medical Clearance', 'Complete exit medical examination', 'Municipal Health Office', 'Completed', '2024-01-20', 'Medical clearance issued'),
+(2, 'Knowledge Transfer', 'Brief successor on driving routes and procedures', 'General Services Office', 'Completed', '2024-01-29', 'Complete briefing provided to new driver'),
+
+-- Checklist for Rosario Gonzales (Exit ID 3)
+(3, 'Security Equipment Return', 'Return security equipment and uniforms', 'General Services Office', 'Completed', '2024-10-30', 'All security gear returned'),
+(3, 'Access Revocation', 'Revoke building and area access permissions', 'General Services Office', 'Pending', NULL, 'Waiting for final security clearance'),
+(3, 'Final Security Report', 'Submit final incident and patrol reports', 'General Services Office', 'Completed', '2024-10-29', 'All reports submitted and filed'),
+(3, 'Clear Accountabilities', 'Settle any equipment or property accountabilities', 'Municipal Accountant\'s Office', 'Pending', NULL, 'Minor accountability for damaged flashlight'),
+(3, 'Process Final Pay', 'Calculate and process final salary and benefits', 'Municipal Human Resource & Administrative Office', 'Pending', NULL, 'Awaiting clearance completion');
+
+-- Sample data for exit_interviews table
+INSERT INTO exit_interviews (exit_id, employee_id, interview_date, feedback, improvement_suggestions, reason_for_leaving, would_recommend, status) VALUES
+-- Exit interview for Michael Torres
+(1, 6, '2024-02-20', 
+'Working in the Municipal Accountant\'s Office provided valuable experience in government accounting procedures. The work environment was professional and colleagues were supportive. However, limited career advancement opportunities and compensation not competitive with private sector.',
+'Consider salary standardization review, create clear career progression paths for technical staff, provide more professional development opportunities, improve office equipment and technology.',
+'Better compensation package offered by private accounting firm, more growth opportunities in private sector, desire to expand expertise in corporate accounting.',
+TRUE, 'Completed'),
+
+-- Exit interview for Eduardo Hernandez  
+(2, 14, '2024-01-15',
+'Proud to have served the municipality for over 30 years as a driver. Witnessed significant improvements in municipal services and infrastructure. Grateful for stable employment and benefits. Work was fulfilling knowing it served the community.',
+'Ensure proper vehicle maintenance schedule, provide defensive driving training for new drivers, improve garage facilities, consider upgrading older vehicles for safety.',
+'Reached mandatory retirement age, looking forward to spending time with family and pursuing personal interests.',
+TRUE, 'Completed'),
+
+-- Exit interview for Rosario Gonzales
+(3, 15, '2024-10-15',
+'Enjoyed the responsibility of protecting municipal facilities. Night shift work was challenging but manageable. Disappointed that contract was not renewed due to budget constraints. Would have preferred to continue working.',
+'Provide better lighting in some building areas, upgrade security communication equipment, offer health insurance coverage for contractual security personnel, consider converting security positions to regular plantilla.',
+'Contract not renewed due to municipal budget constraints, no fault of employee performance.',
+TRUE, 'Completed');
+
+-- Sample data for knowledge_transfers table
+INSERT INTO knowledge_transfers (exit_id, employee_id, handover_details, start_date, completion_date, status, notes) VALUES
+-- Knowledge transfer for Michael Torres
+(1, 6, 
+'Comprehensive handover of accounting procedures including: monthly financial reporting processes, budget monitoring systems, accounts payable/receivable procedures, audit preparation protocols, vendor payment processing, tax computation methods, and filing systems organization. Provided detailed documentation of all recurring tasks and deadlines.',
+'2024-02-01', '2024-02-26', 'Completed',
+'Successor (new accounting staff) properly oriented on all procedures. Documentation provided covers all essential tasks.'),
+
+-- Knowledge transfer for Eduardo Hernandez
+(2, 14,
+'Detailed briefing on municipal vehicle operations including: official routes and shortcuts, vehicle maintenance schedules, fuel management procedures, parking protocols, emergency procedures, contact information for mechanics and suppliers, and safety protocols for transporting officials.',
+'2024-01-10', '2024-01-29', 'Completed',
+'New driver fully oriented on all routes and procedures. Vehicle logbooks and maintenance records properly turned over.'),
+
+-- Knowledge transfer for Rosario Gonzales  
+(3, 15,
+'Security procedures handover covering: building patrol routes and schedules, alarm system operations, emergency contact protocols, incident reporting procedures, visitor management systems, key control procedures, and coordination with other security agencies.',
+'2024-10-01', '2024-10-28', 'Completed',
+'Replacement security personnel properly trained on all security protocols and emergency procedures.');
+
+-- Sample data for settlements table
+INSERT INTO settlements (exit_id, employee_id, last_working_day, final_salary, severance_pay, unused_leave_payout, deductions, final_settlement_amount, payment_date, payment_method, status, processed_date, notes) VALUES
+-- Settlement for Michael Torres
+(1, 6, '2024-02-29', 28000.00, 0.00, 15750.00, 2500.00, 41250.00, '2024-03-15', 'Bank Transfer', 'Completed', '2024-03-10',
+'Final month salary plus 15 days unused leave credits. Deductions include loan balance and uniform cost.'),
+
+-- Settlement for Eduardo Hernandez
+(2, 14, '2024-01-31', 25000.00, 75000.00, 56250.00, 5000.00, 151250.00, '2024-02-28', 'Bank Transfer', 'Completed', '2024-02-15',
+'Final salary plus retirement gratuity (3 months) plus 45 days leave conversion. Deductions for vehicle damage repair.'),
+
+-- Settlement for Rosario Gonzales
+(3, 15, '2024-10-31', 24000.00, 0.00, 8000.00, 1500.00, 30500.00, NULL, 'Bank Transfer', 'Pending', NULL,
+'Final salary plus 10 days unused leave. Deduction for damaged equipment. Awaiting final clearance.');
+
+-- Sample data for exit_documents table
+INSERT INTO exit_documents (exit_id, employee_id, document_type, document_name, document_url, notes) VALUES
+-- Documents for Michael Torres
+(1, 6, 'Clearance', 'Exit Clearance Certificate', '/documents/exits/michael_torres_exit_clearance.pdf', 'Signed clearance from all departments'),
+(1, 6, 'Certificate', 'Certificate of Employment', '/documents/exits/michael_torres_employment_cert.pdf', 'Official employment certificate for future reference'),
+(1, 6, 'Settlement', 'Final Settlement Computation', '/documents/exits/michael_torres_settlement.pdf', 'Detailed breakdown of final settlement amount'),
+
+-- Documents for Eduardo Hernandez
+(2, 14, 'Clearance', 'Retirement Clearance Certificate', '/documents/exits/eduardo_hernandez_retirement_clearance.pdf', 'Complete retirement clearance documentation'),
+(2, 14, 'Certificate', 'Certificate of Service', '/documents/exits/eduardo_hernandez_service_cert.pdf', 'Certificate acknowledging 30+ years of faithful service'),
+(2, 14, 'Settlement', 'Retirement Settlement Statement', '/documents/exits/eduardo_hernandez_retirement_settlement.pdf', 'Retirement benefits and final pay computation'),
+(2, 14, 'Appreciation', 'Letter of Appreciation', '/documents/exits/eduardo_hernandez_appreciation_letter.pdf', 'Official recognition for dedicated service'),
+
+-- Documents for Rosario Gonzales  
+(3, 15, 'Certificate', 'Certificate of Employment', '/documents/exits/rosario_gonzales_employment_cert.pdf', 'Employment certificate for job applications'),
+(3, 15, 'Settlement', 'Final Settlement Statement', '/documents/exits/rosario_gonzales_settlement.pdf', 'Pending settlement computation'),
+(3, 15, 'Clearance', 'Partial Clearance Document', '/documents/exits/rosario_gonzales_partial_clearance.pdf', 'Clearance pending from General Services Office');
+
+-- Sample data for post_exit_surveys table
+INSERT INTO post_exit_surveys (employee_id, exit_id, survey_date, survey_response, satisfaction_rating, submitted_date) VALUES
+-- Post-exit survey for Michael Torres (3 months after exit)
+(6, 1, '2024-05-15', 
+'Overall experience working for the municipality was positive. Learned valuable skills in government accounting and financial management. Colleagues were professional and supportive. Management was fair and understanding. Main concern was limited career growth opportunities and salary competitiveness compared to private sector. Would consider returning if compensation and advancement opportunities improve.',
+4, '2024-05-15'),
+
+-- Post-exit survey for Eduardo Hernandez (6 months after retirement)
+(14, 2, '2024-07-31',
+'Very satisfied with my career in municipal service. Proud to have contributed to community development over three decades. Municipal government provided stable employment and good benefits. Retirement process was handled professionally. Enjoying retirement but miss the camaraderie with colleagues. Would definitely recommend municipal employment to others seeking stable, meaningful work.',
+5, '2024-07-31');
+
+-- ===============================
+-- SAMPLE DATA FOR LEARNING & DEVELOPMENT MODULE
+-- ===============================
+
+-- Insert sample training courses
+INSERT INTO training_courses (course_name, description, category, delivery_method, duration, max_participants, prerequisites, materials_url, status) VALUES
+('Leadership Fundamentals', 'Essential leadership skills for supervisors and managers including communication, decision-making, and team management', 'Leadership', 'Classroom', 16, 20, 'Minimum 1 year work experience, Basic communication skills', 'https://drive.google.com/leadership-fundamentals', 'Active'),
+('Digital Skills Training', 'Computer literacy and office software proficiency including Microsoft Office Suite and basic IT skills', 'Technology', 'Online', 8, 50, 'Basic computer knowledge', 'https://drive.google.com/digital-skills', 'Active'),
+('Customer Service Excellence', 'Customer interaction, problem-solving, and service delivery best practices for municipal employees', 'Soft Skills', 'Workshop', 12, 25, 'None', 'https://drive.google.com/customer-service', 'Active'),
+('Financial Management for Municipal Employees', 'Budget management, financial reporting, and fiscal responsibility training', 'Finance', 'Hybrid', 20, 15, 'Basic math skills, Interest in finance', 'https://drive.google.com/financial-management', 'Active'),
+('Public Administration Principles', 'Core principles of public administration, governance, and municipal service delivery', 'Administration', 'Classroom', 24, 30, 'None', 'https://drive.google.com/public-administration', 'Active'),
+('Project Management Essentials', 'Project planning, execution, monitoring, and evaluation for municipal projects', 'Management', 'Workshop', 18, 20, 'Basic organizational skills', 'https://drive.google.com/project-management', 'Active'),
+('Communication Skills Workshop', 'Effective written and verbal communication, public speaking, and presentation skills', 'Communication', 'Workshop', 10, 25, 'None', 'https://drive.google.com/communication-skills', 'Active'),
+('Safety and Emergency Response', 'Workplace safety, emergency procedures, and first aid training for municipal employees', 'Safety', 'Classroom', 14, 40, 'None', 'https://drive.google.com/safety-training', 'Active'),
+('Data Analysis and Reporting', 'Data collection, analysis, and report generation for municipal operations', 'Analytics', 'Online', 12, 20, 'Basic Excel skills', 'https://drive.google.com/data-analysis', 'Active'),
+('Environmental Management', 'Environmental protection, waste management, and sustainability practices', 'Environment', 'Hybrid', 16, 25, 'Interest in environmental issues', 'https://drive.google.com/environmental-management', 'Active');
+
+-- Insert sample trainers
+INSERT INTO trainers (first_name, last_name, email, phone, specialization, bio, is_internal) VALUES
+('Dr. Maria', 'Santos', 'maria.santos@municipality.gov.ph', '0917-123-4567', 'Leadership & Management', 'Dr. Santos has over 15 years of experience in public administration and leadership development. She holds a PhD in Public Administration and has trained over 500 municipal employees.', TRUE),
+('Engr. Roberto', 'Cruz', 'roberto.cruz@municipality.gov.ph', '0917-234-5678', 'Project Management & Engineering', 'Engr. Cruz is a licensed civil engineer with expertise in municipal infrastructure projects. He specializes in project planning and execution.', TRUE),
+('Prof. Jennifer', 'Reyes', 'jennifer.reyes@municipality.gov.ph', '0917-345-6789', 'Communication & Public Relations', 'Prof. Reyes is a communication expert with 12 years of experience in public relations and media management for government agencies.', TRUE),
+('Atty. Antonio', 'Garcia', 'antonio.garcia@municipality.gov.ph', '0917-456-7890', 'Legal & Compliance', 'Atty. Garcia specializes in local government law, compliance, and regulatory requirements for municipal operations.', TRUE),
+('Ms. Lisa', 'Mendoza', 'lisa.mendoza@municipality.gov.ph', '0917-567-8901', 'Financial Management', 'Ms. Mendoza is a certified public accountant with extensive experience in municipal finance and budget management.', TRUE),
+('Mr. Michael', 'Torres', 'michael.torres@external.com', '0917-678-9012', 'Digital Transformation', 'Mr. Torres is an external consultant specializing in digital transformation and technology adoption for government agencies.', FALSE),
+('Dr. Carmen', 'Dela Cruz', 'carmen.delacruz@external.com', '0917-789-0123', 'Environmental Science', 'Dr. Dela Cruz is an environmental scientist and consultant with expertise in sustainable development and environmental management.', FALSE),
+('Ms. Sandra', 'Pascual', 'sandra.pascual@municipality.gov.ph', '0917-890-1234', 'Human Resources', 'Ms. Pascual is an HR specialist with 10 years of experience in employee development and organizational psychology.', TRUE),
+('Engr. Jose', 'Ramos', 'jose.ramos@municipality.gov.ph', '0917-901-2345', 'Information Technology', 'Engr. Ramos is an IT specialist focusing on digital skills training and technology implementation in government.', TRUE),
+('Ms. Ana', 'Morales', 'ana.morales@municipality.gov.ph', '0917-012-3456', 'Customer Service', 'Ms. Morales is a customer service expert with experience in improving service delivery in municipal offices.', TRUE);
+
+-- Insert sample skills for skill matrix
+INSERT INTO skill_matrix (skill_name, description, category) VALUES
+('Leadership', 'Ability to lead teams, make decisions, and inspire others', 'Management'),
+('Communication', 'Effective written and verbal communication skills', 'Soft Skills'),
+('Project Management', 'Planning, organizing, and managing projects effectively', 'Management'),
+('Financial Analysis', 'Understanding and analyzing financial data', 'Finance'),
+('Public Speaking', 'Confident presentation and public speaking abilities', 'Communication'),
+('Problem Solving', 'Analytical thinking and creative problem-solving', 'Analytics'),
+('Team Collaboration', 'Working effectively in teams and groups', 'Soft Skills'),
+('Time Management', 'Efficient planning and time allocation', 'Management'),
+('Customer Service', 'Providing excellent service to constituents', 'Service'),
+('Data Analysis', 'Collecting, analyzing, and interpreting data', 'Analytics'),
+('Microsoft Office', 'Proficiency in Word, Excel, PowerPoint, and Outlook', 'Technology'),
+('Digital Literacy', 'Basic computer and internet skills', 'Technology'),
+('Legal Compliance', 'Understanding of laws and regulations', 'Legal'),
+('Environmental Awareness', 'Knowledge of environmental issues and sustainability', 'Environment'),
+('Emergency Response', 'Safety procedures and emergency protocols', 'Safety'),
+('Budget Management', 'Planning and managing budgets effectively', 'Finance'),
+('Report Writing', 'Creating clear and comprehensive reports', 'Communication'),
+('Conflict Resolution', 'Resolving disputes and conflicts professionally', 'Soft Skills'),
+('Strategic Planning', 'Long-term planning and goal setting', 'Management'),
+('Quality Assurance', 'Maintaining high standards and quality control', 'Management');
+
+-- Insert sample career paths
+INSERT INTO career_paths (path_name, description, department_id) VALUES
+('Administrative Leadership Path', 'Career progression from administrative staff to department head', 13),
+('Financial Management Path', 'Progression in financial roles from clerk to treasurer', 3),
+('Engineering Career Path', 'Technical progression from assistant engineer to municipal engineer', 7),
+('Health Services Path', 'Career development in health and medical services', 9),
+('Social Services Path', 'Progression in social welfare and community development', 10),
+('Planning and Development Path', 'Career growth in municipal planning and development', 6),
+('Information Technology Path', 'Progression in IT and digital transformation roles', 13),
+('Legal and Compliance Path', 'Career development in legal and regulatory compliance', 13);
+
+-- Insert sample career path stages
+INSERT INTO career_path_stages (path_id, job_role_id, stage_order, minimum_time_in_role, required_skills, required_experience) VALUES
+(1, 1, 1, 12, 'Communication, Time Management', 'Entry-level administrative experience'),
+(1, 1, 2, 24, 'Leadership, Project Management', '2+ years administrative experience'),
+(1, 1, 3, 36, 'Strategic Planning, Team Management', '5+ years supervisory experience'),
+(2, 4, 1, 12, 'Basic Accounting, Microsoft Excel', 'Entry-level financial experience'),
+(2, 4, 2, 24, 'Financial Analysis, Budget Management', '2+ years financial experience'),
+(2, 4, 3, 36, 'Financial Planning, Compliance', '5+ years financial management experience'),
+(3, 8, 1, 12, 'Engineering Principles, AutoCAD', 'Entry-level engineering experience'),
+(3, 8, 2, 24, 'Project Management, Technical Design', '2+ years engineering experience'),
+(3, 8, 3, 36, 'Infrastructure Planning, Team Leadership', '5+ years engineering experience');
+
+-- Insert sample training sessions
+INSERT INTO training_sessions (course_id, trainer_id, session_name, start_date, end_date, location, capacity, cost_per_participant, status) VALUES
+(1, 1, 'Leadership Fundamentals - Batch 1', '2024-03-15 09:00:00', '2024-03-16 17:00:00', 'City Hall Conference Room A', 20, 5000.00, 'Scheduled'),
+(2, 9, 'Digital Skills Training - Online', '2024-03-20 10:00:00', '2024-03-22 16:00:00', 'Online Platform', 50, 2000.00, 'Scheduled'),
+(3, 10, 'Customer Service Excellence - Workshop', '2024-03-25 08:00:00', '2024-03-26 17:00:00', 'Social Services Building', 25, 3000.00, 'Scheduled'),
+(4, 5, 'Financial Management - Hybrid', '2024-04-01 09:00:00', '2024-04-05 17:00:00', 'City Hall + Online', 15, 8000.00, 'Scheduled'),
+(5, 1, 'Public Administration - Classroom', '2024-04-10 09:00:00', '2024-04-12 17:00:00', 'City Hall Conference Room B', 30, 6000.00, 'Scheduled'),
+(6, 2, 'Project Management - Workshop', '2024-04-15 08:00:00', '2024-04-17 17:00:00', 'Engineering Building', 20, 7000.00, 'Scheduled'),
+(7, 3, 'Communication Skills - Workshop', '2024-04-22 09:00:00', '2024-04-23 17:00:00', 'City Hall Conference Room A', 25, 4000.00, 'Scheduled'),
+(8, 1, 'Safety Training - Classroom', '2024-04-29 08:00:00', '2024-04-30 17:00:00', 'Emergency Operations Center', 40, 2500.00, 'Scheduled'),
+(9, 9, 'Data Analysis - Online', '2024-05-06 10:00:00', '2024-05-08 16:00:00', 'Online Platform', 20, 3500.00, 'Scheduled'),
+(10, 7, 'Environmental Management - Hybrid', '2024-05-13 09:00:00', '2024-05-15 17:00:00', 'City Hall + Field Visit', 25, 5000.00, 'Scheduled');
+
+-- Insert sample learning resources
+INSERT INTO learning_resources (resource_name, resource_type, description, resource_url, author, publication_date, duration, tags) VALUES
+('Municipal Governance Handbook', 'Book', 'Comprehensive guide to municipal governance and administration', 'https://drive.google.com/municipal-handbook', 'Department of Interior and Local Government', '2023-01-15', '300 pages', 'governance, administration, municipal'),
+('Excel for Municipal Employees', 'Online Course', 'Advanced Excel skills for data management and reporting', 'https://drive.google.com/excel-course', 'Microsoft Training', '2023-03-20', '8 hours', 'excel, data, reporting, technology'),
+('Public Speaking Mastery', 'Video', 'Video series on effective public speaking and presentation', 'https://drive.google.com/public-speaking', 'Communication Institute', '2023-02-10', '6 hours', 'communication, public speaking, presentation'),
+('Local Government Finance Guide', 'Article', 'Guide to financial management in local government units', 'https://drive.google.com/finance-guide', 'Commission on Audit', '2023-04-05', '45 minutes', 'finance, budget, compliance'),
+('Project Management Fundamentals', 'Webinar', 'Webinar on project management principles and practices', 'https://drive.google.com/project-webinar', 'Project Management Institute', '2023-05-12', '2 hours', 'project management, planning, execution'),
+('Customer Service Best Practices', 'Podcast', 'Podcast series on customer service excellence', 'https://drive.google.com/customer-podcast', 'Service Excellence Institute', '2023-06-18', '3 hours', 'customer service, communication, satisfaction'),
+('Environmental Protection Guidelines', 'Book', 'Guidelines for environmental protection and sustainability', 'https://drive.google.com/environmental-guide', 'Department of Environment and Natural Resources', '2023-07-25', '200 pages', 'environment, sustainability, protection'),
+('Digital Transformation in Government', 'Online Course', 'Course on digital transformation for government agencies', 'https://drive.google.com/digital-transformation', 'Digital Government Institute', '2023-08-30', '12 hours', 'digital, transformation, technology'),
+('Leadership in Public Service', 'Video', 'Video series on leadership in public service', 'https://drive.google.com/leadership-video', 'Public Service Leadership Institute', '2023-09-15', '8 hours', 'leadership, public service, management'),
+('Safety and Emergency Procedures', 'Article', 'Comprehensive guide to workplace safety and emergency response', 'https://drive.google.com/safety-guide', 'Department of Labor and Employment', '2023-10-20', '60 minutes', 'safety, emergency, procedures');
+
+-- Insert sample training enrollments
+INSERT INTO training_enrollments (session_id, employee_id, enrollment_date, status, completion_date, score, feedback, certificate_url) VALUES
+(1, 1, '2024-02-15 10:30:00', 'Enrolled', NULL, NULL, NULL, NULL),
+(1, 2, '2024-02-15 11:15:00', 'Enrolled', NULL, NULL, NULL, NULL),
+(1, 3, '2024-02-15 14:20:00', 'Enrolled', NULL, NULL, NULL, NULL),
+(2, 4, '2024-02-16 09:45:00', 'Enrolled', NULL, NULL, NULL, NULL),
+(2, 5, '2024-02-16 10:30:00', 'Enrolled', NULL, NULL, NULL, NULL),
+(3, 6, '2024-02-17 08:15:00', 'Enrolled', NULL, NULL, NULL, NULL),
+(3, 7, '2024-02-17 09:00:00', 'Enrolled', NULL, NULL, NULL, NULL),
+(4, 8, '2024-02-18 13:30:00', 'Enrolled', NULL, NULL, NULL, NULL),
+(4, 9, '2024-02-18 14:15:00', 'Enrolled', NULL, NULL, NULL, NULL),
+(5, 10, '2024-02-19 11:00:00', 'Enrolled', NULL, NULL, NULL, NULL);
+
+-- Insert sample employee skills
+INSERT INTO employee_skills (employee_id, skill_id, proficiency_level, assessed_date, certification_url, expiry_date, notes) VALUES
+(1, 1, 'Intermediate', '2024-01-15', 'https://drive.google.com/cert1.pdf', '2025-01-15', 'Leadership training completed'),
+(1, 2, 'Advanced', '2024-01-20', 'https://drive.google.com/cert2.pdf', '2025-01-20', 'Excellent communication skills'),
+(2, 3, 'Beginner', '2024-01-25', NULL, NULL, 'Basic project management knowledge'),
+(2, 4, 'Intermediate', '2024-02-01', 'https://drive.google.com/cert3.pdf', '2025-02-01', 'Financial analysis training'),
+(3, 5, 'Advanced', '2024-02-05', 'https://drive.google.com/cert4.pdf', '2025-02-05', 'Experienced public speaker'),
+(3, 6, 'Intermediate', '2024-02-10', NULL, NULL, 'Good problem-solving abilities'),
+(4, 7, 'Advanced', '2024-02-15', 'https://drive.google.com/cert5.pdf', '2025-02-15', 'Team collaboration expert'),
+(4, 8, 'Intermediate', '2024-02-20', NULL, NULL, 'Effective time management'),
+(5, 9, 'Advanced', '2024-02-25', 'https://drive.google.com/cert6.pdf', '2025-02-25', 'Customer service specialist'),
+(5, 10, 'Beginner', '2024-03-01', NULL, NULL, 'Basic data analysis skills');
+
+-- Insert sample employee resources
+INSERT INTO employee_resources (employee_id, resource_id, assigned_date, due_date, completed_date, status, rating, feedback) VALUES
+(1, 1, '2024-01-10', '2024-02-10', '2024-01-25', 'Completed', 5, 'Excellent resource for understanding municipal governance'),
+(1, 2, '2024-01-15', '2024-02-15', '2024-02-05', 'Completed', 4, 'Very helpful for improving Excel skills'),
+(2, 3, '2024-01-20', '2024-02-20', '2024-02-10', 'Completed', 5, 'Great video series on public speaking'),
+(2, 4, '2024-01-25', '2024-02-25', NULL, 'In Progress', NULL, NULL),
+(3, 5, '2024-02-01', '2024-03-01', '2024-02-20', 'Completed', 4, 'Informative webinar on project management'),
+(3, 6, '2024-02-05', '2024-03-05', NULL, 'Assigned', NULL, NULL),
+(4, 7, '2024-02-10', '2024-03-10', '2024-02-28', 'Completed', 5, 'Comprehensive guide on environmental protection'),
+(4, 8, '2024-02-15', '2024-03-15', NULL, 'In Progress', NULL, NULL),
+(5, 9, '2024-02-20', '2024-03-20', '2024-03-05', 'Completed', 4, 'Good insights on leadership in public service'),
+(5, 10, '2024-02-25', '2024-03-25', NULL, 'Assigned', NULL, NULL);
+
+-- Insert sample training needs assessments
+INSERT INTO training_needs_assessment (employee_id, assessment_date, skills_gap, recommended_trainings, priority, status) VALUES
+(1, '2024-01-15', 'Advanced project management skills needed for department leadership', 'Project Management Essentials, Strategic Planning Workshop', 'High', 'Identified'),
+(2, '2024-01-20', 'Digital skills improvement required for modern office operations', 'Digital Skills Training, Data Analysis and Reporting', 'Medium', 'In Progress'),
+(3, '2024-01-25', 'Leadership development needed for supervisory role', 'Leadership Fundamentals, Communication Skills Workshop', 'High', 'Completed'),
+(4, '2024-02-01', 'Financial management skills for budget responsibilities', 'Financial Management for Municipal Employees', 'Medium', 'Identified'),
+(5, '2024-02-05', 'Customer service skills for public interaction', 'Customer Service Excellence, Communication Skills Workshop', 'Low', 'In Progress'),
+(6, '2024-02-10', 'Safety training required for workplace compliance', 'Safety and Emergency Response', 'High', 'Identified'),
+(7, '2024-02-15', 'Environmental awareness for municipal projects', 'Environmental Management', 'Medium', 'Completed'),
+(8, '2024-02-20', 'Public administration principles for career advancement', 'Public Administration Principles', 'High', 'In Progress'),
+(9, '2024-02-25', 'Technology skills for digital transformation', 'Digital Skills Training, Data Analysis and Reporting', 'Medium', 'Identified'),
+(10, '2024-03-01', 'Communication skills for public relations role', 'Communication Skills Workshop, Public Speaking', 'High', 'Completed');
+
+-- Insert sample employee career paths
+INSERT INTO employee_career_paths (employee_id, path_id, current_stage_id, start_date, target_completion_date, status) VALUES
+(1, 1, 2, '2023-01-15', '2025-01-15', 'Active'),
+(2, 2, 1, '2023-06-20', '2025-06-20', 'Active'),
+(3, 1, 3, '2022-03-10', '2024-03-10', 'Active'),
+(4, 3, 1, '2023-09-05', '2025-09-05', 'Active'),
+(5, 4, 2, '2022-12-15', '2024-12-15', 'Active'),
+(6, 5, 1, '2023-11-20', '2025-11-20', 'Active'),
+(7, 6, 2, '2022-08-30', '2024-08-30', 'Active'),
+(8, 7, 1, '2023-04-12', '2025-04-12', 'Active'),
+(9, 2, 3, '2021-07-25', '2023-07-25', 'Completed'),
+(10, 1, 1, '2023-12-01', '2025-12-01', 'Active');
