@@ -134,6 +134,81 @@ $personalInfo = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Fetch job roles for dropdown
 $stmt = $pdo->query("SELECT job_role_id, title, department FROM job_roles ORDER BY title");
 $jobRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch exits with related data
+$stmt = $pdo->query("
+    SELECT 
+        e.*,
+        CONCAT(pi.first_name, ' ', pi.last_name) as employee_name,
+        ep.employee_number,
+        jr.title as job_title,
+        jr.department
+    FROM exits e
+    LEFT JOIN employee_profiles ep ON e.employee_id = ep.employee_id
+    LEFT JOIN personal_information pi ON ep.personal_info_id = pi.personal_info_id
+    LEFT JOIN job_roles jr ON ep.job_role_id = jr.job_role_id
+    ORDER BY e.exit_date DESC
+");
+$exits = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Handle form submissions for exits
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    try {
+        switch ($_POST['action']) {
+            case 'add':
+                $stmt = $pdo->prepare("INSERT INTO exits (employee_id, exit_type, exit_reason, notice_date, exit_date, status) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $_POST['employee_id'],
+                    $_POST['exit_type'],
+                    $_POST['exit_reason'],
+                    $_POST['notice_date'],
+                    $_POST['exit_date'],
+                    $_POST['status']
+                ]);
+                $message = "Exit record added successfully!";
+                $messageType = "success";
+                break;
+            
+            case 'update':
+                $stmt = $pdo->prepare("UPDATE exits SET employee_id=?, exit_type=?, exit_reason=?, notice_date=?, exit_date=?, status=? WHERE exit_id=?");
+                $stmt->execute([
+                    $_POST['employee_id'],
+                    $_POST['exit_type'],
+                    $_POST['exit_reason'],
+                    $_POST['notice_date'],
+                    $_POST['exit_date'],
+                    $_POST['status'],
+                    $_POST['exit_id']
+                ]);
+                $message = "Exit record updated successfully!";
+                $messageType = "success";
+                break;
+            
+            case 'delete':
+                $stmt = $pdo->prepare("DELETE FROM exits WHERE exit_id=?");
+                $stmt->execute([$_POST['exit_id']]);
+                $message = "Exit record deleted successfully!";
+                $messageType = "success";
+                break;
+        }
+    } catch (PDOException $e) {
+        $message = "Database error: " . $e->getMessage();
+        $messageType = "danger";
+    }
+}
+
+// Fetch active employees for dropdown
+$stmt = $pdo->query("
+    SELECT 
+        ep.employee_id,
+        ep.employee_number,
+        CONCAT(pi.first_name, ' ', pi.last_name) as full_name
+    FROM employee_profiles ep
+    LEFT JOIN personal_information pi ON ep.personal_info_id = pi.personal_info_id
+    WHERE ep.employment_status != 'Terminated'
+    ORDER BY pi.first_name
+");
+$employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -212,36 +287,229 @@ $jobRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="row">
             <?php include 'sidebar.php'; ?>
                         <div class="main-content">
-                <h2 class="section-title">Exits</h2>
+                <h2 class="section-title">Employee Exit Management</h2>
                 <div class="content">
                     <?php if ($message): ?>
-                        <div class="alert alert-<?= htmlspecialchars($messageType) ?>">
+                        <div class="alert alert-<?= $messageType ?>">
                             <?= htmlspecialchars($message) ?>
                         </div>
                     <?php endif; ?>
 
+                    <div class="controls">
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="searchInput" placeholder="Search exits...">
+                        </div>
+                        <button class="btn btn-primary" onclick="openModal('add')">
+                            ➕ Add New Exit Record
+                        </button>
+                    </div>
 
+                    <div class="table-container">
+                        <table class="table" id="exitsTable">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Exit Type</th>
+                                    <th>Notice Date</th>
+                                    <th>Exit Date</th>
+                                    <th>Status</th>
+                                    <th>Reason</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($exits as $exit): ?>
+                                <tr>
+                                    <td>
+                                        <strong><?= htmlspecialchars($exit['employee_name']) ?></strong><br>
+                                        <small><?= htmlspecialchars($exit['employee_number']) ?></small>
+                                    </td>
+                                    <td><?= htmlspecialchars($exit['exit_type']) ?></td>
+                                    <td><?= date('M d, Y', strtotime($exit['notice_date'])) ?></td>
+                                    <td><?= date('M d, Y', strtotime($exit['exit_date'])) ?></td>
+                                    <td>
+                                        <span class="status-badge status-<?= strtolower($exit['status']) ?>">
+                                            <?= htmlspecialchars($exit['status']) ?>
+                                        </span>
+                                    </td>
+                                    <td><?= htmlspecialchars($exit['exit_reason']) ?></td>
+                                    <td>
+                                        <button class="btn btn-warning btn-small" onclick="editExit(<?= $exit['exit_id'] ?>)">
+                                            ✏️ Edit
+                                        </button>
+                                        <button class="btn btn-danger btn-small" onclick="deleteExit(<?= $exit['exit_id'] ?>)">
+                                            🗑️ Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-   
+    <!-- Add/Edit Exit Modal -->
+    <div id="exitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Exit Record</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="exitForm" method="POST">
+                    <input type="hidden" id="action" name="action" value="add">
+                    <input type="hidden" id="exit_id" name="exit_id">
+
+                    <div class="form-group">
+                        <label for="employee_id">Employee</label>
+                        <select id="employee_id" name="employee_id" class="form-control" required>
+                            <option value="">Select employee...</option>
+                            <?php foreach ($employees as $employee): ?>
+                                <option value="<?= $employee['employee_id'] ?>">
+                                    <?= htmlspecialchars($employee['full_name']) ?> (<?= htmlspecialchars($employee['employee_number']) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="exit_type">Exit Type</label>
+                                <select id="exit_type" name="exit_type" class="form-control" required>
+                                    <option value="">Select type...</option>
+                                    <option value="Resignation">Resignation</option>
+                                    <option value="Retirement">Retirement</option>
+                                    <option value="Termination">Termination</option>
+                                    <option value="End of Contract">End of Contract</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="status">Status</label>
+                                <select id="status" name="status" class="form-control" required>
+                                    <option value="">Select status...</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Processing">Processing</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="notice_date">Notice Date</label>
+                                <input type="date" id="notice_date" name="notice_date" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="exit_date">Exit Date</label>
+                                <input type="date" id="exit_date" name="exit_date" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exit_reason">Exit Reason</label>
+                        <textarea id="exit_reason" name="exit_reason" class="form-control" rows="3" required></textarea>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn btn-success">Save Exit Record</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     
     <script>
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tableRows = document.querySelectorAll('#exitsTable tbody tr');
-            
-            tableRows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
+        // Add this JavaScript at the end of the file
+        let exitsData = <?= json_encode($exits) ?>;
+
+        function openModal(mode, exitId = null) {
+            const modal = document.getElementById('exitModal');
+            const form = document.getElementById('exitForm');
+            const title = document.getElementById('modalTitle');
+            const action = document.getElementById('action');
+
+            form.reset();
+            if (mode === 'add') {
+                title.textContent = 'Add New Exit Record';
+                action.value = 'add';
+                document.getElementById('exit_id').value = '';
+            } else if (mode === 'edit') {
+                title.textContent = 'Edit Exit Record';
+                action.value = 'update';
+                document.getElementById('exit_id').value = exitId;
+                populateEditForm(exitId);
+            }
+
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('exitModal').style.display = 'none';
+        }
+
+        function populateEditForm(exitId) {
+            const exit = exitsData.find(e => e.exit_id == exitId);
+            if (exit) {
+                document.getElementById('employee_id').value = exit.employee_id;
+                document.getElementById('exit_type').value = exit.exit_type;
+                document.getElementById('exit_reason').value = exit.exit_reason;
+                document.getElementById('notice_date').value = exit.notice_date.split(' ')[0];
+                document.getElementById('exit_date').value = exit.exit_date.split(' ')[0];
+                document.getElementById('status').value = exit.status;
+            }
+        }
+
+        function editExit(exitId) {
+            openModal('edit', exitId);
+        }
+
+        function deleteExit(exitId) {
+            if (confirm('Are you sure you want to delete this exit record? This action cannot be undone.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="exit_id" value="${exitId}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('exitModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.display = 'none';
             });
-        });
+        }, 5000);
     </script>
 </body>
 </html>
