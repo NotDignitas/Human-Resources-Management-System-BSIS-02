@@ -87,6 +87,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $messageType = "error";
                 }
                 break;
+                
+            case 'delete_employee_skill':
+                try {
+                    $stmt = $pdo->prepare("DELETE FROM employee_skills WHERE employee_skill_id=?");
+                    $stmt->execute([$_POST['employee_skill_id']]);
+                    $message = "Employee skill deleted successfully!";
+                    $messageType = "success";
+                } catch (PDOException $e) {
+                    $message = "Error deleting employee skill: " . $e->getMessage();
+                    $messageType = "error";
+                }
+                break;
+                
+            case 'delete_assessment':
+                try {
+                    $stmt = $pdo->prepare("DELETE FROM training_needs_assessment WHERE assessment_id=?");
+                    $stmt->execute([$_POST['assessment_id']]);
+                    $message = "Training needs assessment deleted successfully!";
+                    $messageType = "success";
+                } catch (PDOException $e) {
+                    $message = "Error deleting assessment: " . $e->getMessage();
+                    $messageType = "error";
+                }
+                break;
         }
     }
 }
@@ -746,6 +770,9 @@ try {
                                             <button class="btn btn-warning btn-small" onclick="editEmployeeSkill(<?php echo $es['employee_skill_id']; ?>)">
                                                 ✏️ Edit
                                             </button>
+                                            <button class="btn btn-danger btn-small" onclick="deleteEmployeeSkill(<?php echo $es['employee_skill_id']; ?>)">
+                                                🗑️ Delete
+                                            </button>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -801,6 +828,9 @@ try {
                                         <td>
                                             <button class="btn btn-warning btn-small" onclick="editAssessment(<?php echo $assessment['assessment_id']; ?>)">
                                                 ✏️ Edit
+                                            </button>
+                                            <button class="btn btn-danger btn-small" onclick="deleteAssessment(<?php echo $assessment['assessment_id']; ?>)">
+                                                🗑️ Delete
                                             </button>
                                         </td>
                                     </tr>
@@ -1241,6 +1271,32 @@ try {
             }
         }
 
+        function deleteEmployeeSkill(employeeSkillId) {
+            if (confirm('Are you sure you want to delete this employee skill assessment? This action cannot be undone.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="action" value="delete_employee_skill">
+                    <input type="hidden" name="employee_skill_id" value="${employeeSkillId}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function deleteAssessment(assessmentId) {
+            if (confirm('Are you sure you want to delete this training needs assessment? This action cannot be undone.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="action" value="delete_assessment">
+                    <input type="hidden" name="assessment_id" value="${assessmentId}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
         // Close modal when clicking outside
         window.onclick = function(event) {
             const skillModal = document.getElementById('skillModal');
