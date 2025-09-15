@@ -131,6 +131,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $messageType = "error";
                 }
                 break;
+
+            case 'delete_trainer':
+                try {
+                    $stmt = $pdo->prepare("DELETE FROM trainers WHERE trainer_id=?");
+                    $stmt->execute([$_POST['trainer_id']]);
+                    $message = "Trainer deleted successfully!";
+                    $messageType = "success";
+                } catch (PDOException $e) {
+                    $message = "Error deleting trainer: " . $e->getMessage();
+                    $messageType = "error";
+                }
+                break;
         }
     }
 }
@@ -798,6 +810,9 @@ try {
                                             <button class="btn btn-warning btn-small" onclick="editTrainer(<?php echo $trainer['trainer_id']; ?>)">
                                                 ✏️ Edit
                                             </button>
+                                            <button class="btn btn-danger btn-small" onclick="deleteTrainer(<?php echo $trainer['trainer_id']; ?>)">
+                                                🗑️ Delete
+                                            </button>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -1144,6 +1159,19 @@ try {
             }
         }
 
+        function deleteTrainer(trainerId) {
+            if (confirm('Are you sure you want to delete this trainer? This action cannot be undone.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="action" value="delete_trainer">
+                    <input type="hidden" name="trainer_id" value="${trainerId}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
         // Close modal when clicking outside
         window.onclick = function(event) {
             const enrollmentModal = document.getElementById('enrollmentModal');
@@ -1215,4 +1243,4 @@ try {
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
-</html>.........                  
+</html>
