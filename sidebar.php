@@ -465,18 +465,13 @@ $sidebar_stats = getSidebarStats();
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?php echo isActiveMenu('training_analytics.php'); ?>" href="training_analytics.php">
-                            <i class="fas fa-chart-line"></i> Training Analytics
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link <?php echo isActiveMenu('certifications.php'); ?>" href="certifications.php">
                             <i class="fas fa-certificate"></i> Certifications
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?php echo isActiveMenu('training_calendar.php'); ?>" href="training_calendar.php">
-                            <i class="fas fa-calendar"></i> Training Calendar
+                        <a class="nav-link <?php echo isActiveMenu('feedback.php'); ?>" href="feedback.php">
+                            <i class="fas fa-comment-alt"></i> Feedback
                         </a>
                     </li>
                 </ul>
@@ -640,4 +635,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-</script> 
+</script>
