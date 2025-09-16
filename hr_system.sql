@@ -1033,6 +1033,115 @@ CREATE TABLE employee_career_paths (
     FOREIGN KEY (current_stage_id) REFERENCES career_path_stages(stage_id) ON DELETE CASCADE
 );
 
+-- Create certifications table
+CREATE TABLE certifications (
+    certification_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    skill_id INT,
+    
+    -- Certification Details
+    certification_name VARCHAR(255) NOT NULL,
+    issuing_organization VARCHAR(255) NOT NULL,
+    certification_number VARCHAR(100),
+    category VARCHAR(100),
+    
+    -- Proficiency and Assessment
+    proficiency_level ENUM('Beginner', 'Intermediate', 'Advanced', 'Expert') NOT NULL,
+    assessment_score DECIMAL(5,2),
+    
+    -- Dates
+    issue_date DATE NOT NULL,
+    expiry_date DATE,
+    assessed_date DATE NOT NULL,
+    
+    -- Documentation
+    certification_url VARCHAR(500),
+    certificate_file_path VARCHAR(500),
+    
+    -- Status and Validation
+    status ENUM('Active', 'Expired', 'Suspended', 'Pending Renewal') DEFAULT 'Active',
+    verification_status ENUM('Verified', 'Pending', 'Failed') DEFAULT 'Pending',
+    
+    -- Cost and Training Info
+    cost DECIMAL(10,2) DEFAULT 0,
+    training_hours INT DEFAULT 0,
+    cpe_credits DECIMAL(5,2) DEFAULT 0, -- Continuing Professional Education credits
+    
+    -- Renewal Information
+    renewal_required BOOLEAN DEFAULT FALSE,
+    renewal_period_months INT,
+    renewal_reminder_sent BOOLEAN DEFAULT FALSE,
+    next_renewal_date DATE,
+    
+    -- Additional Information
+    prerequisites TEXT,
+    description TEXT,
+    notes TEXT,
+    tags VARCHAR(255), -- For searching and categorization
+    
+    -- Metadata
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    FOREIGN KEY (employee_id) REFERENCES employee_profiles(employee_id) ON DELETE CASCADE,
+    FOREIGN KEY (skill_id) REFERENCES skill_matrix(skill_id) ON DELETE SET NULL,
+    
+    -- Indexes for performance
+    INDEX idx_employee_id (employee_id),
+    INDEX idx_skill_id (skill_id),
+    INDEX idx_expiry_date (expiry_date),
+    INDEX idx_status (status),
+    INDEX idx_category (category)
+);
+
+-- ===============================
+-- SIMPLIFIED TRAINING FEEDBACK TABLE
+-- ===============================
+
+CREATE TABLE training_feedback (
+    feedback_id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    -- Who is providing feedback and what it's about
+    employee_id INT NOT NULL,
+    feedback_type ENUM('Training Session', 'Learning Resource', 'Trainer', 'Course') NOT NULL,
+    
+    -- What they're giving feedback on (only one will be filled)
+    session_id INT NULL,
+    resource_id INT NULL,
+    trainer_id INT NULL,
+    course_id INT NULL,
+    
+    -- Simple ratings (1-5 scale)
+    overall_rating INT NOT NULL CHECK (overall_rating BETWEEN 1 AND 5),
+    content_rating INT CHECK (content_rating BETWEEN 1 AND 5),
+    instructor_rating INT CHECK (instructor_rating BETWEEN 1 AND 5),
+    
+    -- Text feedback
+    what_worked_well TEXT,
+    what_could_improve TEXT,
+    additional_comments TEXT,
+    
+    -- Simple yes/no questions
+    would_recommend BOOLEAN DEFAULT TRUE,
+    met_expectations BOOLEAN DEFAULT TRUE,
+    
+    -- Basic info
+    feedback_date DATE NOT NULL DEFAULT (CURRENT_DATE),
+    is_anonymous BOOLEAN DEFAULT FALSE,
+    
+    -- Timestamps
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    FOREIGN KEY (employee_id) REFERENCES employee_profiles(employee_id) ON DELETE CASCADE,
+    FOREIGN KEY (session_id) REFERENCES training_sessions(session_id) ON DELETE SET NULL,
+    FOREIGN KEY (resource_id) REFERENCES learning_resources(resource_id) ON DELETE SET NULL,
+    FOREIGN KEY (trainer_id) REFERENCES trainers(trainer_id) ON DELETE SET NULL,
+    FOREIGN KEY (course_id) REFERENCES training_courses(course_id) ON DELETE SET NULL
+);
+
 -- ===============================
 -- SAMPLE DATA FOR TESTING
 -- ===============================
@@ -1633,3 +1742,177 @@ INSERT INTO employee_career_paths (employee_id, path_id, current_stage_id, start
 (8, 7, 1, '2023-04-12', '2025-04-12', 'Active'),
 (9, 2, 3, '2021-07-25', '2023-07-25', 'Completed'),
 (10, 1, 1, '2023-12-01', '2025-12-01', 'Active');
+
+
+-- Insert sample certifications data
+INSERT INTO certifications (
+    employee_id, skill_id, certification_name, issuing_organization, certification_number, 
+    category, proficiency_level, assessment_score, issue_date, expiry_date, assessed_date,
+    certification_url, status, verification_status, cost, training_hours, cpe_credits,
+    renewal_required, renewal_period_months, next_renewal_date, prerequisites, 
+    description, notes, tags
+) VALUES
+-- Employee 1 - Administrative Staff with Leadership Focus
+(1, 1, 'Certified Public Manager (CPM)', 'Philippine Association of Government Managers', 'CPM-2024-001', 'Leadership', 'Advanced', 92.5, '2024-01-15', '2027-01-15', '2024-01-15', 'https://drive.google.com/cpm-cert-001.pdf', 'Active', 'Verified', 15000.00, 40, 40.0, TRUE, 36, '2027-01-15', '3 years management experience', 'Comprehensive leadership certification for government managers', 'Completed with distinction', 'leadership,management,government'),
+
+(1, 2, 'Professional Communication Certificate', 'Communication Institute of the Philippines', 'PCC-2024-002', 'Communication', 'Advanced', 88.0, '2024-01-20', '2025-01-20', '2024-01-20', 'https://drive.google.com/comm-cert-002.pdf', 'Active', 'Verified', 8000.00, 16, 16.0, TRUE, 12, '2025-01-20', 'Basic communication skills', 'Advanced communication and presentation skills certification', 'Excellent performance in public speaking module', 'communication,presentation,public-speaking'),
+
+-- Employee 2 - Finance Staff
+(2, 4, 'Certified Government Financial Manager', 'Government Finance Officers Association', 'CGFM-2024-003', 'Finance', 'Intermediate', 85.0, '2024-02-01', '2026-02-01', '2024-02-01', 'https://drive.google.com/cgfm-cert-003.pdf', 'Active', 'Verified', 12000.00, 32, 32.0, TRUE, 24, '2026-02-01', 'Bachelor\'s degree in Finance or Accounting', 'Specialized certification in government financial management', 'Strong understanding of municipal finance principles', 'finance,government,budget,accounting'),
+
+(2, 11, 'Microsoft Office Specialist - Excel Expert', 'Microsoft Corporation', 'MOS-EXL-2024-004', 'Technology', 'Expert', 95.0, '2024-01-25', '2026-01-25', '2024-01-25', 'https://drive.google.com/mos-excel-cert-004.pdf', 'Active', 'Verified', 5000.00, 8, 8.0, TRUE, 24, '2026-01-25', 'Basic Excel knowledge', 'Expert-level Excel proficiency certification', 'Perfect score in advanced formulas and pivot tables', 'excel,microsoft,data-analysis,spreadsheet'),
+
+-- Employee 3 - Senior Staff with Public Speaking
+(3, 5, 'Certified Professional Speaker', 'Philippine Society of Professional Speakers', 'CPS-2024-005', 'Communication', 'Expert', 94.0, '2024-02-05', '2027-02-05', '2024-02-05', 'https://drive.google.com/cps-cert-005.pdf', 'Active', 'Verified', 20000.00, 60, 60.0, TRUE, 36, '2027-02-05', '50 hours of public speaking experience', 'Professional speaker certification with advanced presentation skills', 'Demonstrated excellence in training delivery', 'public-speaking,presentation,training,communication'),
+
+(3, 6, 'Creative Problem Solving Certification', 'International Center for Studies in Creativity', 'CPS-CERT-2024-006', 'Analytics', 'Advanced', 89.5, '2024-02-10', '2025-02-10', '2024-02-10', 'https://drive.google.com/problem-solving-cert-006.pdf', 'Active', 'Verified', 10000.00, 24, 24.0, TRUE, 12, '2025-02-10', 'Basic analytical thinking skills', 'Advanced problem-solving methodologies and creative thinking', 'Excellent application of TRIZ methodology', 'problem-solving,creativity,analytics,innovation'),
+
+-- Employee 4 - Team Leader
+(4, 7, 'Team Leadership Excellence Certificate', 'Center for Creative Leadership', 'TLE-2024-007', 'Management', 'Advanced', 91.0, '2024-02-15', '2026-02-15', '2024-02-15', 'https://drive.google.com/team-leadership-cert-007.pdf', 'Active', 'Verified', 18000.00, 40, 40.0, TRUE, 24, '2026-02-15', '2 years supervisory experience', 'Comprehensive team leadership and collaboration certification', 'Strong focus on cross-functional team management', 'team-leadership,collaboration,management,supervision'),
+
+(4, 8, 'Time Management Professional', 'Productivity Institute', 'TMP-2024-008', 'Management', 'Advanced', 87.0, '2024-02-20', '2025-02-20', '2024-02-20', 'https://drive.google.com/time-mgmt-cert-008.pdf', 'Active', 'Verified', 6000.00, 16, 16.0, TRUE, 12, '2025-02-20', 'Basic organizational skills', 'Advanced time management and productivity optimization', 'Implemented new scheduling systems in department', 'time-management,productivity,organization,efficiency'),
+
+-- Employee 5 - Customer Service Specialist
+(5, 9, 'Customer Service Excellence Professional', 'Customer Service Institute', 'CSE-2024-009', 'Service', 'Expert', 96.0, '2024-02-25', '2026-02-25', '2024-02-25', 'https://drive.google.com/customer-service-cert-009.pdf', 'Active', 'Verified', 12000.00, 32, 32.0, TRUE, 24, '2026-02-25', '1 year customer service experience', 'Expert-level customer service and satisfaction management', 'Achieved highest score in conflict resolution module', 'customer-service,communication,conflict-resolution,satisfaction'),
+
+(5, 10, 'Data Analysis Fundamentals', 'Data Science Academy', 'DAF-2024-010', 'Analytics', 'Beginner', 78.0, '2024-03-01', '2025-03-01', '2024-03-01', 'https://drive.google.com/data-analysis-cert-010.pdf', 'Active', 'Verified', 7000.00, 20, 20.0, TRUE, 12, '2025-03-01', 'Basic math and statistics', 'Foundational data analysis and interpretation skills', 'Good grasp of basic statistical concepts', 'data-analysis,statistics,analytics,reporting'),
+
+-- Employee 6 - Engineering Staff
+(6, 3, 'Project Management Professional (PMP)', 'Project Management Institute', 'PMP-2024-011', 'Management', 'Advanced', 92.0, '2024-01-10', '2027-01-10', '2024-01-10', 'https://drive.google.com/pmp-cert-011.pdf', 'Active', 'Verified', 25000.00, 60, 60.0, TRUE, 36, '2027-01-10', 'Bachelor\'s degree and 4,500 hours project experience', 'Global standard for project management professionals', 'Successfully managed 3 major infrastructure projects', 'project-management,planning,execution,infrastructure'),
+
+(6, 15, 'Emergency Response Coordinator', 'National Disaster Risk Reduction and Management Council', 'ERC-2024-012', 'Safety', 'Intermediate', 86.0, '2024-01-15', '2025-01-15', '2024-01-15', 'https://drive.google.com/emergency-response-cert-012.pdf', 'Active', 'Verified', 8000.00, 24, 24.0, TRUE, 12, '2025-01-15', 'First aid certification', 'Emergency response planning and coordination certification', 'Led emergency drills for municipal building', 'emergency,safety,disaster-management,coordination'),
+
+-- Employee 7 - Health Services
+(7, 14, 'Environmental Health Officer', 'Department of Health', 'EHO-2024-013', 'Environment', 'Advanced', 90.0, '2024-02-01', '2026-02-01', '2024-02-01', 'https://drive.google.com/env-health-cert-013.pdf', 'Active', 'Verified', 15000.00, 48, 48.0, TRUE, 24, '2026-02-01', 'Health science degree', 'Environmental health assessment and management', 'Specialized in water quality monitoring', 'environment,health,water-quality,public-health'),
+
+-- Employee 8 - Senior Administrative
+(8, 13, 'Legal Compliance Officer', 'Philippine Association of Legal Compliance', 'LCO-2024-014', 'Legal', 'Intermediate', 84.0, '2024-02-10', '2025-02-10', '2024-02-10', 'https://drive.google.com/legal-compliance-cert-014.pdf', 'Active', 'Verified', 18000.00, 40, 40.0, TRUE, 12, '2025-02-10', 'Basic legal knowledge', 'Government compliance and regulatory requirements', 'Strong understanding of local government regulations', 'legal,compliance,regulations,government-law'),
+
+(8, 19, 'Strategic Planning Certification', 'Institute for Strategic Planning', 'SPC-2024-015', 'Management', 'Advanced', 88.5, '2024-02-15', '2026-02-15', '2024-02-15', 'https://drive.google.com/strategic-planning-cert-015.pdf', 'Active', 'Verified', 22000.00, 50, 50.0, TRUE, 24, '2026-02-15', '5 years management experience', 'Long-term strategic planning and implementation', 'Developed 5-year municipal development plan', 'strategic-planning,management,long-term-planning,development'),
+
+-- Employee 9 - IT Specialist
+(9, 12, 'Digital Transformation Specialist', 'Digital Government Institute', 'DTS-2024-016', 'Technology', 'Advanced', 93.0, '2024-02-20', '2025-02-20', '2024-02-20', 'https://drive.google.com/digital-transform-cert-016.pdf', 'Active', 'Verified', 16000.00, 35, 35.0, TRUE, 12, '2025-02-20', 'IT background and government experience', 'Digital transformation strategies for government agencies', 'Led digitization of municipal services', 'digital-transformation,technology,government-services,innovation'),
+
+(9, 11, 'Microsoft Azure Fundamentals', 'Microsoft Corporation', 'AZ-900-2024-017', 'Technology', 'Intermediate', 82.0, '2024-01-30', '2026-01-30', '2024-01-30', 'https://drive.google.com/azure-cert-017.pdf', 'Active', 'Verified', 8000.00, 20, 20.0, TRUE, 24, '2026-01-30', 'Basic cloud computing knowledge', 'Cloud computing fundamentals and Azure services', 'Good understanding of cloud infrastructure', 'cloud-computing,azure,microsoft,infrastructure'),
+
+-- Employee 10 - Administrative Assistant
+(10, 17, 'Professional Report Writing', 'Business Communication Institute', 'PRW-2024-018', 'Communication', 'Intermediate', 81.0, '2024-03-05', '2025-03-05', '2024-03-05', 'https://drive.google.com/report-writing-cert-018.pdf', 'Active', 'Verified', 5500.00, 12, 12.0, TRUE, 12, '2025-03-05', 'Basic writing skills', 'Professional business and technical report writing', 'Improved department report quality significantly', 'report-writing,communication,documentation,business-writing'),
+
+-- Additional certifications for comprehensive coverage
+
+-- Expired certification for Employee 3
+(3, 2, 'Basic Communication Skills', 'Local Training Institute', 'BCS-2022-019', 'Communication', 'Intermediate', 80.0, '2022-01-15', '2023-01-15', '2022-01-15', 'https://drive.google.com/basic-comm-cert-019.pdf', 'Expired', 'Verified', 3000.00, 8, 8.0, TRUE, 12, '2023-01-15', 'None', 'Basic communication and interpersonal skills', 'Superseded by advanced certification', 'communication,basic,interpersonal'),
+
+-- Pending renewal certification for Employee 4
+(4, 1, 'Supervisory Leadership', 'Management Development Institute', 'SL-2023-020', 'Leadership', 'Intermediate', 85.0, '2023-12-01', '2024-12-01', '2023-12-01', 'https://drive.google.com/supervisory-cert-020.pdf', 'Active', 'Verified', 10000.00, 24, 24.0, TRUE, 12, '2024-12-01', 'Supervisory role', 'Basic to intermediate supervisory skills', 'Due for renewal in 3 months', 'leadership,supervision,management,renewal-due'),
+
+-- Suspended certification (compliance issue)
+(6, 20, 'Quality Assurance Professional', 'Quality Management Institute', 'QAP-2023-021', 'Management', 'Advanced', 90.0, '2023-06-15', '2025-06-15', '2023-06-15', 'https://drive.google.com/quality-assurance-cert-021.pdf', 'Suspended', 'Pending', 14000.00, 36, 36.0, TRUE, 24, '2025-06-15', '3 years QA experience', 'Quality assurance and control systems', 'Suspended pending verification of training provider', 'quality-assurance,management,suspended,verification'),
+
+-- High-value certification
+(1, 19, 'Executive Leadership Program', 'Asian Institute of Management', 'ELP-2023-022', 'Leadership', 'Expert', 94.0, '2023-09-20', '2026-09-20', '2023-09-20', 'https://drive.google.com/exec-leadership-cert-022.pdf', 'Active', 'Verified', 150000.00, 120, 120.0, TRUE, 36, '2026-09-20', 'Senior management position', 'Executive leadership development for senior government officials', 'Comprehensive program covering strategic leadership', 'executive,leadership,strategic,senior-management'),
+
+-- Recent certification with high CPE credits
+(2, 16, 'Advanced Budget Management', 'Government Budget Institute', 'ABM-2024-023', 'Finance', 'Advanced', 91.5, '2024-03-10', '2025-03-10', '2024-03-10', 'https://drive.google.com/budget-mgmt-cert-023.pdf', 'Active', 'Verified', 25000.00, 60, 60.0, TRUE, 12, '2025-03-10', 'Intermediate budget knowledge', 'Advanced budgeting, forecasting, and financial planning', 'Recently completed, high CPE credit value', 'budget,finance,planning,advanced,recent');
+
+INSERT INTO training_feedback (
+    employee_id, feedback_type, session_id, trainer_id, course_id, 
+    overall_rating, content_rating, instructor_rating,
+    what_worked_well, what_could_improve, additional_comments,
+    would_recommend, met_expectations, feedback_date, is_anonymous
+) VALUES
+
+-- Feedback for Leadership Fundamentals Training Session
+(1, 'Training Session', 1, NULL, NULL, 
+ 5, 5, 5,
+ 'Excellent training session! Dr. Santos presented the material clearly and used practical examples from municipal governance. The interactive exercises were very engaging and helped reinforce key concepts.',
+ 'Could benefit from more case studies specific to small municipalities. The session ran slightly longer than scheduled.',
+ 'This training significantly improved my understanding of leadership principles. The materials provided were comprehensive and well-organized.',
+ TRUE, TRUE, '2024-03-17', FALSE),
+
+(2, 'Training Session', 1, NULL, NULL,
+ 4, 4, 5,
+ 'Dr. Santos is an excellent facilitator with deep knowledge of public administration. The training content was highly relevant to my role as Municipal Engineer.',
+ 'Some concepts were quite advanced and could use more basic explanations. More time needed for hands-on exercises.',
+ 'The networking opportunities with other department heads were valuable. Learned from their experiences and challenges.',
+ TRUE, TRUE, '2024-03-17', FALSE),
+
+-- Feedback for Digital Skills Training
+(4, 'Training Session', 2, NULL, NULL,
+ 4, 4, 4,
+ 'Very practical training that addressed real workplace needs. Engr. Ramos demonstrated excellent technical knowledge and was patient with questions.',
+ 'Internet connectivity issues disrupted some online demonstrations. Some participants needed more basic computer instruction.',
+ 'The training materials were well-structured and easy to follow. Appreciate having both video tutorials and written guides.',
+ TRUE, TRUE, '2024-03-23', FALSE),
+
+-- Feedback for Customer Service Excellence Workshop
+(7, 'Training Session', 3, NULL, NULL,
+ 5, 5, 4,
+ 'Ms. Morales provided excellent insights into dealing with difficult situations and improving public service delivery. Role-playing exercises were very helpful.',
+ 'Workshop room was too small for the number of participants. Some activities felt rushed due to time constraints.',
+ 'The focus on municipal service scenarios made the training highly relevant. Appreciated the practical tips for handling complaints.',
+ TRUE, TRUE, '2024-03-27', FALSE),
+
+-- Trainer-specific feedback
+(3, 'Trainer', NULL, 1, NULL,
+ 5, NULL, 5,
+ 'Dr. Santos is an outstanding trainer with exceptional knowledge of leadership and public administration. Her teaching style is engaging and inclusive.',
+ 'Could provide more opportunities for participant questions during presentations rather than saving all questions for the end.',
+ 'Her use of real-world examples from her municipal experience made the concepts more relatable and practical.',
+ TRUE, TRUE, '2024-03-18', FALSE),
+
+-- Learning resource feedback
+(1, 'Learning Resource', NULL, NULL, NULL,
+ 4, 4, NULL,
+ 'The Municipal Governance Handbook is comprehensive and well-written. It covers all essential aspects of municipal administration.',
+ 'Some sections are too technical for employees without legal background. Could use more illustrations and flowcharts.',
+ 'Excellent reference material that I refer to regularly. The index and cross-references are very helpful.',
+ TRUE, FALSE, '2024-02-15', FALSE),
+
+-- Course content feedback
+(5, 'Course', NULL, NULL, 4,
+ 3, 3, NULL,
+ 'The Financial Management course covered important topics relevant to municipal finance. Content was accurate and up-to-date.',
+ 'Course materials were quite dry and theoretical. Needed more practical exercises and real municipal examples.',
+ 'While informative, the course could be more engaging. Some modules were repetitive.',
+ FALSE, TRUE, '2024-04-06', FALSE),
+
+-- More training session feedback
+(8, 'Training Session', 5, NULL, NULL,
+ 4, 4, 4,
+ 'The overall training program offered by the municipality is excellent and shows commitment to employee development. Good variety of courses available.',
+ 'Training schedule sometimes conflicts with work duties. Need better coordination with department heads for release of employees.',
+ 'Appreciate that training certificates are recognized for performance evaluations. This motivates participation.',
+ TRUE, TRUE, '2024-02-28', FALSE),
+
+-- Anonymous feedback with constructive criticism
+(9, 'Training Session', 4, NULL, NULL,
+ 2, 2, 3,
+ 'Ms. Mendoza has good technical knowledge of financial management principles.',
+ 'Training delivery was too fast-paced. Complex financial concepts need more explanation and examples. Trainer seemed unprepared for some participant questions.',
+ 'Materials were outdated and some information conflicted with current municipal procedures.',
+ FALSE, FALSE, '2024-04-06', TRUE),
+
+-- Positive feedback for excellent training
+(10, 'Training Session', 7, NULL, NULL,
+ 5, 5, 5,
+ 'Prof. Reyes delivered an exceptional communication skills workshop! Her expertise in public relations and media management was evident throughout. Excellent use of multimedia and interactive exercises.',
+ 'Could not identify any significant areas for improvement. The workshop exceeded expectations.',
+ 'This was one of the best training sessions I have attended. The content was practical and immediately applicable to my work.',
+ TRUE, TRUE, '2024-04-24', FALSE),
+
+-- Trainer feedback with mixed review
+(6, 'Trainer', NULL, 2, NULL,
+ 3, NULL, 2,
+ 'Engr. Cruz has excellent technical knowledge of project management principles and real-world experience.',
+ 'Poor presentation skills made it difficult to follow the training. No visual aids or handouts provided.',
+ 'Content was valuable but delivery needs significant improvement. Participants struggled to stay engaged.',
+ FALSE, TRUE, '2024-04-18', FALSE),
+
+-- More learning resource feedback
+(11, 'Learning Resource', NULL, NULL, NULL,
+ 5, 5, NULL,
+ 'The online project management course was excellent. Self-paced format worked well with my schedule.',
+ 'Some video quality could be improved. A few modules had audio sync issues.',
+ 'Great investment in our professional development. The certificate is a nice bonus.',
+ TRUE, TRUE, '2024-03-10', FALSE);
