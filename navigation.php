@@ -203,6 +203,35 @@ $profile_image = getUserProfileImage($_SESSION['username'] ?? 'User');
 $last_login = getLastLoginTime($_SESSION['user_id'] ?? 1);
 ?>
 
+<!-- Global Theme Loader -->
+<script>
+(function() {
+    try {
+        var theme = localStorage.getItem('hr_theme') || 'light';
+        var root = document.documentElement;
+        if (theme === 'dark') {
+            root.classList.add('dark-theme');
+            if (document.body) document.body.classList.add('dark-theme');
+        } else {
+            root.classList.remove('dark-theme');
+            if (document.body) document.body.classList.remove('dark-theme');
+        }
+        window.setTheme = function(next) {
+            try {
+                localStorage.setItem('hr_theme', next);
+                if (next === 'dark') {
+                    root.classList.add('dark-theme');
+                    if (document.body) document.body.classList.add('dark-theme');
+                } else {
+                    root.classList.remove('dark-theme');
+                    if (document.body) document.body.classList.remove('dark-theme');
+                }
+            } catch (e) {}
+        }
+    } catch (e) {}
+})();
+</script>
+
 <!-- Top Navigation Bar -->
 <nav class="top-navbar">
     <div class="navbar-brand-section">
@@ -240,32 +269,6 @@ $last_login = getLastLoginTime($_SESSION['user_id'] ?? 1);
             </div>
         </li>
         
-        <!-- Quick Stats (Role-based) -->
-        <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'hr'): ?>
-        <li class="nav-item dropdown mr-3">
-            <a class="nav-link-custom" href="#" id="statsDropdown" role="button" data-toggle="dropdown">
-                <i class="fas fa-chart-bar" style="color: #E91E63;"></i>
-                <span class="stat-badge">
-                    <?php echo $quick_stats['urgent_tasks']; ?>
-                </span>
-            </a>
-            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="statsDropdown">
-                <h6 class="dropdown-header">Quick Stats</h6>
-                <a class="dropdown-item" href="#">
-                    <i class="fas fa-users mr-2"></i>
-                    Active Employees: <?php echo $quick_stats['active_employees']; ?>
-                </a>
-                <a class="dropdown-item" href="#">
-                    <i class="fas fa-calendar-alt mr-2"></i>
-                    Pending Leaves: <?php echo $quick_stats['pending_leaves']; ?>
-                </a>
-                <a class="dropdown-item" href="#">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                    Urgent Tasks: <?php echo $quick_stats['urgent_tasks']; ?>
-                </a>
-            </div>
-        </li>
-        <?php endif; ?>
         
         <!-- Notifications -->
         <li class="nav-item dropdown mr-3">
@@ -323,7 +326,10 @@ $last_login = getLastLoginTime($_SESSION['user_id'] ?? 1);
                 </div>
                 <div class="dropdown-divider"></div>
                 
-                <a class="dropdown-item" href="employee_profile.php">
+                <a class="dropdown-item" href="settings.php#system">
+                    <i class="fas fa-moon mr-2"></i> Theme Settings
+                </a>
+                <a class="dropdown-item" href="settings.php#profile">
                     <i class="fas fa-user mr-2"></i> My Profile
                 </a>
                 <a class="dropdown-item" href="#" onclick="openSettings()">
@@ -331,7 +337,7 @@ $last_login = getLastLoginTime($_SESSION['user_id'] ?? 1);
                 </a>
                 
                 <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'hr'): ?>
-                <a class="dropdown-item" href="view_employee.php">
+                <a class="dropdown-item" href="employee_profile.php">
                     <i class="fas fa-users mr-2"></i> Manage Employees
                 </a>
                 <?php endif; ?>
@@ -605,7 +611,7 @@ function openSettings() {
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Theme</label>
-                        <select class="form-control">
+                        <select class="form-control" onchange="window.setTheme && window.setTheme(this.value.toLowerCase())">
                             <option>Light</option>
                             <option>Dark</option>
                         </select>

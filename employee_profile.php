@@ -15,7 +15,7 @@ require_once 'dp.php';
 
 // Database connection
 $host = 'localhost';
-$dbname = 'CC_HR';
+$dbname = 'hr_system';
 $username = 'root';
 $password = '';
 
@@ -371,7 +371,7 @@ $jobRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .form-control {
             width: 100%;
-            padding: 12px 15px;
+            padding: 6px 15px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 16px;
